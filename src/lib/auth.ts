@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { env } from "@/lib/env";
 
 const demoAdminEmail = env.DEMO_ADMIN_EMAIL ?? "admin@maktba.tn";
-const demoAdminPassword = env.DEMO_ADMIN_PASSWORD ?? "ChangeMe123!";
+const demoAdminPassword = env.DEMO_ADMIN_PASSWORD ?? "admin123!";
 const authSecret =
   env.NEXTAUTH_SECRET ??
   (process.env.NODE_ENV !== "production"
