@@ -84,10 +84,10 @@ export default async function AccountPage({
                   <p className="mt-2 text-xl font-semibold">{formatTnd(customer.lifetimeValue)}</p>
                 </div>
               </div>
-              <div className="space-y-2 text-sm text-muted-foreground">
+              {/* <div className="space-y-2 text-sm text-muted-foreground">
                 <p>Admin demo: `admin@maktba.tn` / `ChangeMe123!`</p>
                 <p>Manager demo: `manager@maktba.tn` / `Manager123!`</p>
-              </div>
+              </div> */}
               <Link href="/account/orders" className={primaryLinkClass}>
                 Voir l&apos;historique commandes
               </Link>
