@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { SignInForm } from "@/components/forms/sign-in-form";
 import { StoreAuthControls } from "@/components/shared/auth-controls";
@@ -21,10 +20,6 @@ export default async function AccountPage({
 }) {
   const session = await getServerSession(authOptions);
   const { denied } = await searchParams;
-
-  if (session?.user?.role === "ADMIN") {
-    redirect("/admin");
-  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
@@ -59,6 +54,11 @@ export default async function AccountPage({
                     Role: {session.user.role ?? "CLIENT"}
                   </p>
                 </div>
+                {session.user.role === "ADMIN" ? (
+                  <Link href="/admin" className={primaryLinkClass}>
+                    Ouvrir le dashboard admin
+                  </Link>
+                ) : null}
                 <StoreAuthControls />
               </CardContent>
             </Card>
