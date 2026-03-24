@@ -1,3 +1,4 @@
+import { hash } from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 
 import {
@@ -17,6 +18,53 @@ const ROLE_KEYS = {
   STAFF: "STAFF",
   CUSTOMER: "CUSTOMER",
 } as const;
+
+function mapLifecycle(status: string) {
+  switch (status) {
+    case "PENDING":
+      return {
+        fulfillmentStatus: "CONFIRMED",
+        packagingStatus: "NOT_STARTED",
+        deliveryStatus: "NOT_ASSIGNED",
+      } as const;
+    case "CONFIRMED":
+      return {
+        fulfillmentStatus: "PREPARING",
+        packagingStatus: "IN_PROGRESS",
+        deliveryStatus: "NOT_ASSIGNED",
+      } as const;
+    case "PICKING":
+      return {
+        fulfillmentStatus: "PICKING",
+        packagingStatus: "IN_PROGRESS",
+        deliveryStatus: "NOT_ASSIGNED",
+      } as const;
+    case "READY_FOR_DELIVERY":
+      return {
+        fulfillmentStatus: "READY_FOR_DISPATCH",
+        packagingStatus: "PACKAGED",
+        deliveryStatus: "ASSIGNED",
+      } as const;
+    case "SHIPPED":
+      return {
+        fulfillmentStatus: "FULFILLED",
+        packagingStatus: "HANDED_TO_COURIER",
+        deliveryStatus: "SHIPPED",
+      } as const;
+    case "DELIVERED":
+      return {
+        fulfillmentStatus: "FULFILLED",
+        packagingStatus: "HANDED_TO_COURIER",
+        deliveryStatus: "DELIVERED",
+      } as const;
+    default:
+      return {
+        fulfillmentStatus: "CONFIRMED",
+        packagingStatus: "NOT_STARTED",
+        deliveryStatus: "NOT_ASSIGNED",
+      } as const;
+  }
+}
 
 async function main() {
   await prisma.stockMovement.deleteMany();
@@ -58,7 +106,7 @@ async function main() {
       {
         key: ROLE_KEYS.CUSTOMER,
         name: "Customer",
-        description: "Wholesale portal access for B2B buyers.",
+        description: "Retail customer access for orders, invoices, and account tracking.",
       },
     ].map((role) => prisma.role.create({ data: role })),
   );
@@ -169,6 +217,33 @@ async function main() {
   );
   const customerByCode = new Map(customers.map((customer) => [customer.code, customer]));
 
+  const seededCustomer = customers[4];
+
+  if (seededCustomer) {
+    const customerPasswordHash = await hash("Client123!", 10);
+
+    const customerUser = await prisma.user.create({
+      data: {
+        name: seededCustomer.contactName,
+        email: "client@maktba.tn",
+        phone: seededCustomer.phone,
+        passwordHash: customerPasswordHash,
+        roleId: roleByKey.get(ROLE_KEYS.CUSTOMER)!.id,
+        customerId: seededCustomer.id,
+      },
+    });
+
+    await prisma.customerProfile.create({
+      data: {
+        userId: customerUser.id,
+        customerId: seededCustomer.id,
+        firstName: "Client",
+        lastName: "Maktba",
+        marketingOptIn: true,
+      },
+    });
+  }
+
   const products = new Map<string, Awaited<ReturnType<typeof prisma.product.create>>>();
 
   for (const product of demoProducts) {
@@ -179,13 +254,24 @@ async function main() {
         name: product.name,
         shortDescription: product.shortDescription,
         description: product.description,
+        specifications: {
+          leadTimeDays: product.leadTimeDays,
+          tags: product.tags,
+        },
+        tags: product.tags,
         unit: product.unit,
         packSize: product.packSize,
         minimumOrderQuantity: product.minimumOrderQuantity,
         stockOnHand: product.stockOnHand,
+        reservedStock: Math.min(4, product.stockOnHand),
+        soldStock: 24,
         costPrice: product.costPrice,
         wholesalePrice: product.wholesalePrice,
         retailPrice: product.retailPrice,
+        ...(product.isFeatured
+          ? { promotionalPrice: product.retailPrice - 1.2 }
+          : {}),
+        compareAtPrice: product.retailPrice + 1.5,
         lowStockThreshold: product.lowStockThreshold,
         isFeatured: product.isFeatured,
         categoryId: categoryBySlug.get(product.categorySlug)!.id,
@@ -254,6 +340,19 @@ async function main() {
       },
     });
 
+    await prisma.inventory.create({
+      data: {
+        productId: createdProduct.id,
+        currentStock: product.stockOnHand,
+        reservedStock: Math.min(4, product.stockOnHand),
+        soldStock: 24,
+        lowStockThreshold: product.lowStockThreshold,
+        reorderPoint: product.lowStockThreshold,
+        lastCountedAt: new Date("2026-03-22T10:00:00.000Z"),
+        lastRestockedAt: new Date("2026-03-10T09:00:00.000Z"),
+      },
+    });
+
     await prisma.stockMovement.create({
       data: {
         productId: createdProduct.id,
@@ -307,6 +406,9 @@ async function main() {
       0,
     );
     const total = subtotal + order.shippingFee;
+    const lifecycle = mapLifecycle(order.status);
+    const invoiceNumber = `FAC-${order.orderNumber.replace("CMD-", "")}`;
+    const trackingNumber = `TRK-${order.orderNumber.replace("CMD-", "")}`;
 
     const createdOrder = await prisma.order.create({
       data: {
@@ -314,6 +416,9 @@ async function main() {
         customerId: customer.id,
         createdById: adminUser.id,
         status: order.status,
+        fulfillmentStatus: lifecycle.fulfillmentStatus,
+        packagingStatus: lifecycle.packagingStatus,
+        deliveryStatus: lifecycle.deliveryStatus,
         paymentStatus: order.paymentStatus,
         paymentMethod: order.paymentMethod,
         subtotal,
@@ -329,13 +434,35 @@ async function main() {
         receiverAddressLine: order.receiverAddressLine,
         receiverCity: order.receiverCity,
         receiverGovernorate: order.receiverGovernorate,
+        billingName: order.receiverName,
+        billingPhone: order.receiverPhone,
+        billingEmail: customer.email,
+        billingAddressLine: order.receiverAddressLine,
+        billingCity: order.receiverCity,
+        billingGovernorate: order.receiverGovernorate,
         placedAt: new Date(order.placedAt),
+        packedAt:
+          ["READY_FOR_DELIVERY", "SHIPPED", "DELIVERED"].includes(order.status)
+            ? new Date(order.placedAt)
+            : null,
+        dispatchedAt:
+          ["SHIPPED", "DELIVERED"].includes(order.status)
+            ? new Date(order.placedAt)
+            : null,
+        deliveredAt:
+          order.status === "DELIVERED" ? new Date(order.placedAt) : null,
         items: {
           create: order.items.map((item) => {
             const product = products.get(item.sku)!;
+            const imageUrl = demoProducts.find((entry) => entry.sku === item.sku)?.images[0];
+
             return {
-              productId: product.id,
+              product: {
+                connect: { id: product.id },
+              },
               productName: product.name,
+              productSlug: product.slug,
+              ...(imageUrl ? { productImageUrl: imageUrl } : {}),
               sku: product.sku,
               unitCost: item.unitCost,
               unitPrice: item.unitPrice,
@@ -360,6 +487,81 @@ async function main() {
               ...(order.paymentStatus === "PENDING"
                 ? {}
                 : { paidAt: new Date(order.placedAt) }),
+            },
+          ],
+        },
+        invoice: {
+          create: {
+            invoiceNumber,
+            customerId: customer.id,
+            ...(billingAddress ? { billingAddressId: billingAddress.id } : {}),
+            status: order.paymentStatus === "PAID" ? "PAID" : "ISSUED",
+            issueDate: new Date(order.placedAt),
+            subtotal,
+            shippingAmount: order.shippingFee,
+            total,
+            items: {
+              create: order.items.map((item) => {
+                const product = products.get(item.sku)!;
+                return {
+                  productId: product.id,
+                  label: product.name,
+                  sku: product.sku,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                  total: item.unitPrice * item.quantity,
+                };
+              }),
+            },
+          },
+        },
+        delivery: {
+          create: {
+            customerId: customer.id,
+            ...(shippingAddress ? { addressId: shippingAddress.id } : {}),
+            method: "STANDARD",
+            courierCompany:
+              order.status === "DELIVERED" ? "Rapid Poste" : "Livraison interne",
+            trackingNumber,
+            status: lifecycle.deliveryStatus,
+            dispatchDate:
+              ["SHIPPED", "DELIVERED"].includes(order.status)
+                ? new Date(order.placedAt)
+                : null,
+            estimatedDeliveryDate: new Date(order.placedAt),
+            completedAt:
+              order.status === "DELIVERED" ? new Date(order.placedAt) : null,
+            receiverName: order.receiverName,
+            receiverPhone: order.receiverPhone,
+            notes: "Delivery seeded for workflow demo.",
+            events: {
+              create: [
+                {
+                  status: lifecycle.deliveryStatus,
+                  description: "Etat initial de livraison cree par le seed.",
+                  eventAt: new Date(order.placedAt),
+                },
+              ],
+            },
+          },
+        },
+        fulfillmentHistory: {
+          create: [
+            {
+              status: lifecycle.fulfillmentStatus,
+              note: "Etat initial de preparation.",
+              changedById: adminUser.id,
+              changedAt: new Date(order.placedAt),
+            },
+          ],
+        },
+        packagingHistory: {
+          create: [
+            {
+              status: lifecycle.packagingStatus,
+              note: "Etat packaging initialise.",
+              changedById: adminUser.id,
+              changedAt: new Date(order.placedAt),
             },
           ],
         },

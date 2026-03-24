@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -13,7 +15,7 @@ import { tunisianGovernorates } from "@/lib/navigation";
 import { useCartStore } from "@/store/cart-store";
 
 const checkoutSchema = z.object({
-  companyName: z.string().min(2, "Societe requise"),
+  companyName: z.string().min(2, "Nom ou societe requise"),
   contactName: z.string().min(2, "Contact requis"),
   phone: z.string().min(8, "Telephone invalide"),
   email: z.string().email("Email invalide"),
@@ -27,7 +29,10 @@ const checkoutSchema = z.object({
 type CheckoutValues = z.infer<typeof checkoutSchema>;
 
 export function CheckoutForm() {
+  const router = useRouter();
+  const items = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<CheckoutValues>({
     resolver: zodResolver(checkoutSchema),
@@ -43,26 +48,55 @@ export function CheckoutForm() {
       cashOnDelivery: true,
     },
   });
+
   const cashOnDelivery = useWatch({
     control: form.control,
     name: "cashOnDelivery",
   });
 
-  const onSubmit = form.handleSubmit(() => {
-    toast.success("Commande prete a etre confirmee");
-    clearCart();
+  const onSubmit = form.handleSubmit((values) => {
+    if (items.length === 0) {
+      toast.error("Votre panier est vide.");
+      return;
+    }
+
+    startTransition(async () => {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...values,
+          items,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.message ?? "La commande n'a pas pu etre enregistree.");
+        return;
+      }
+
+      toast.success(result.message ?? "Commande enregistree.");
+      clearCart();
+      router.push("/account/orders");
+      router.refresh();
+    });
   });
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5 rounded-[28px] border border-white/70 bg-white/90 p-6">
+    <form
+      onSubmit={onSubmit}
+      className="space-y-5 rounded-[28px] border border-white/70 bg-white/90 p-6"
+    >
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Societe / magasin</label>
+          <label className="text-sm font-medium">Nom / societe</label>
           <Input {...form.register("companyName")} />
           <p className="text-xs text-destructive">{form.formState.errors.companyName?.message}</p>
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Nom du contact</label>
+          <label className="text-sm font-medium">Nom du receveur</label>
           <Input {...form.register("contactName")} />
           <p className="text-xs text-destructive">{form.formState.errors.contactName?.message}</p>
         </div>
@@ -114,12 +148,12 @@ export function CheckoutForm() {
           onCheckedChange={(checked) => form.setValue("cashOnDelivery", Boolean(checked))}
         />
         <span className="text-sm">
-          Paiement a la livraison (COD) active, une option tres utilisee en Tunisie.
+          Paiement a la livraison active, avec confirmation logistique interne.
         </span>
       </label>
 
-      <Button type="submit" className="w-full rounded-full">
-        Confirmer la commande
+      <Button type="submit" className="w-full rounded-full" disabled={isPending}>
+        {isPending ? "Enregistrement..." : "Confirmer la commande"}
       </Button>
     </form>
   );

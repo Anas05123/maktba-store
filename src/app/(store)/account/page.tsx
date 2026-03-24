@@ -1,15 +1,17 @@
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 
+import { AccountNav } from "@/components/account/account-nav";
+import { RegisterForm } from "@/components/forms/register-form";
 import { SignInForm } from "@/components/forms/sign-in-form";
 import { StoreAuthControls } from "@/components/shared/auth-controls";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { authOptions } from "@/lib/auth";
-import { customers, dashboardSummary, orders } from "@/lib/demo-data";
+import { customerAccountOverviews, operationalOrders } from "@/lib/operations";
 import { formatTnd } from "@/lib/format";
 
-const customer = customers[0]!;
 const primaryLinkClass =
   "inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90";
 
@@ -20,6 +22,7 @@ export default async function AccountPage({
 }) {
   const session = await getServerSession(authOptions);
   const { denied } = await searchParams;
+  const customer = customerAccountOverviews[0]!;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
@@ -29,8 +32,9 @@ export default async function AccountPage({
         </Badge>
         <h1 className="text-4xl font-semibold">Mon compte</h1>
         <p className="max-w-3xl text-base leading-7 text-muted-foreground">
-          Retrouvez vos informations, l&apos;historique de commande et l&apos;acces de gestion si vous etes administrateur.
+          Connectez-vous, creez votre compte, suivez vos commandes et accedez a vos factures en quelques clics.
         </p>
+        {session?.user ? <AccountNav /> : null}
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_0.95fr]">
@@ -42,6 +46,7 @@ export default async function AccountPage({
               </CardContent>
             </Card>
           ) : null}
+
           {session?.user ? (
             <Card className="rounded-[32px] border-white/70 bg-white/90">
               <CardHeader>
@@ -54,40 +59,57 @@ export default async function AccountPage({
                     Role: {session.user.role ?? "CLIENT"}
                   </p>
                 </div>
-                {session.user.role === "ADMIN" ? (
-                  <Link href="/admin" className={primaryLinkClass}>
-                    Ouvrir le dashboard admin
+                <div className="flex flex-wrap gap-3">
+                  <Link href="/account/orders" className={primaryLinkClass}>
+                    Voir mes commandes
                   </Link>
-                ) : null}
+                  {session.user.role === "ADMIN" ? (
+                    <Link href="/admin" className={primaryLinkClass}>
+                      Ouvrir le dashboard admin
+                    </Link>
+                  ) : null}
+                </div>
                 <StoreAuthControls />
               </CardContent>
             </Card>
           ) : (
-            <SignInForm />
+            <Tabs defaultValue="signin" className="space-y-4">
+              <TabsList className="rounded-full bg-muted/60 p-1">
+                <TabsTrigger value="signin" className="rounded-full px-5">
+                  Connexion
+                </TabsTrigger>
+                <TabsTrigger value="register" className="rounded-full px-5">
+                  Creer un compte
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="signin">
+                <SignInForm />
+              </TabsContent>
+              <TabsContent value="register">
+                <RegisterForm />
+              </TabsContent>
+            </Tabs>
           )}
+
           <Card className="rounded-[32px] border-white/70 bg-white/90">
             <CardHeader>
-              <CardTitle>Infos de demonstration</CardTitle>
+              <CardTitle>Vue compte client</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="rounded-3xl border border-dashed border-primary/30 bg-primary/5 p-5">
-                <p className="font-semibold">{customer.companyName}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{customer.contactName}</p>
+                <p className="font-semibold">{customer.displayName}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{customer.email}</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-3xl border p-4">
-                  <p className="text-sm text-muted-foreground">Credit</p>
-                  <p className="mt-2 text-xl font-semibold">{formatTnd(customer.creditLimit)}</p>
+                  <p className="text-sm text-muted-foreground">Commandes</p>
+                  <p className="mt-2 text-xl font-semibold">{customer.orderCount}</p>
                 </div>
                 <div className="rounded-3xl border p-4">
-                  <p className="text-sm text-muted-foreground">Lifetime value</p>
-                  <p className="mt-2 text-xl font-semibold">{formatTnd(customer.lifetimeValue)}</p>
+                  <p className="text-sm text-muted-foreground">Total depense</p>
+                  <p className="mt-2 text-xl font-semibold">{formatTnd(customer.totalSpent)}</p>
                 </div>
               </div>
-              {/* <div className="space-y-2 text-sm text-muted-foreground">
-                <p>Admin demo: `admin@maktba.tn` / `ChangeMe123!`</p>
-                <p>Manager demo: `manager@maktba.tn` / `Manager123!`</p>
-              </div> */}
               <Link href="/account/orders" className={primaryLinkClass}>
                 Voir l&apos;historique commandes
               </Link>
@@ -97,26 +119,24 @@ export default async function AccountPage({
 
         <Card className="rounded-[32px] border-white/70 bg-white/90">
           <CardHeader>
-            <CardTitle>Dernieres activites</CardTitle>
+            <CardTitle>Activites recentes</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {orders.slice(0, 3).map((order) => (
+            {operationalOrders.slice(0, 3).map((order) => (
               <div key={order.orderNumber} className="rounded-3xl border p-4">
                 <div className="flex items-center justify-between">
                   <p className="font-semibold">{order.orderNumber}</p>
                   <Badge variant="secondary" className="rounded-full">
-                    {order.status}
+                    {order.orderStatus}
                   </Badge>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">{order.customer.companyName}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{order.customerName}</p>
                 <p className="mt-2 text-sm font-medium">{formatTnd(order.total)}</p>
               </div>
             ))}
             <div className="rounded-3xl bg-muted/60 p-5">
-              <p className="text-sm text-muted-foreground">Panier moyen plateforme</p>
-              <p className="mt-2 text-2xl font-semibold">
-                {formatTnd(dashboardSummary.avgOrderValue)}
-              </p>
+              <p className="text-sm text-muted-foreground">Documents disponibles</p>
+              <p className="mt-2 text-2xl font-semibold">{operationalOrders.length} factures</p>
             </div>
           </CardContent>
         </Card>

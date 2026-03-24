@@ -46,7 +46,7 @@ export function SignInForm() {
         return;
       }
 
-      router.push("/admin");
+      router.push("/account");
       router.refresh();
     });
   });

@@ -1,17 +1,17 @@
 # Maktba Store
 
-Modern stationery e-commerce platform for Tunisia, built with a scalable Next.js App Router architecture and a production-grade PostgreSQL schema.
+Professional stationery e-commerce and operations platform for Tunisia, built as a customer-facing store plus a private ERP-lite admin system.
 
-## Why this product direction
+## Product scope
 
-The reference sites show a few clear Tunisian market patterns:
+This project now covers the main workflows a real stationery business needs:
 
-- category-heavy browsing for school, office, paper, bagagerie, and bundle purchases
-- TND pricing with quick visual trust signals
-- phone-first ordering habits and strong cash-on-delivery expectations
-- seasonal rentree logic, wholesale volume tiers, and repeated restocking behavior
-
-This implementation upgrades those market signals into a cleaner B2C storefront with a private admin CMS, stronger data modeling, and analytics-ready business logic.
+- public B2C storefront for normal customers
+- customer account area with orders, profile, addresses, and invoices
+- protected admin CMS for products, categories, customers, orders, deliveries, invoices, finance, and reports
+- structured order lifecycle with fulfillment, packaging, and delivery statuses
+- invoice documents and printable financial report exports
+- PostgreSQL + Prisma schema designed for commerce and operations
 
 ## Stack
 
@@ -21,57 +21,64 @@ This implementation upgrades those market signals into a cleaner B2C storefront 
 - shadcn/ui
 - Prisma ORM
 - PostgreSQL
-- NextAuth
+- NextAuth credentials auth
 - React Hook Form + Zod
 - Zustand
-- Recharts + shadcn chart wrappers
+- Recharts
 - TanStack Table
 
 ## Core capabilities
 
 ### Public storefront
 
-- premium homepage tailored to Tunisian stationery shoppers
-- searchable catalog with category filters
-- category pages and rich product detail pages
-- cart with bulk-aware pricing
-- Tunisia-ready checkout with governorates and COD
-- account overview and order history surfaces
+- homepage, catalog, categories, product detail pages
+- cart and Tunisia-ready checkout
+- customer sign in and registration entry point
+- account dashboard, order history, order detail pages
+- invoice document pages ready for print/PDF export
 
-### Admin dashboard
+### Admin / operations
 
-- overview KPIs for revenue, profit, orders, and stock alerts
-- products management with live create/edit/delete APIs
-- categories management
-- inventory monitoring and low-stock watchlist
-- orders tracking
-- customers management
-- suppliers visibility
-- finance analytics and expense tracking
-- reports view for performance summaries
+- admin-only dashboard shell
+- product, category, customer, and order management
+- deliveries page with tracking-oriented workflow view
+- invoices registry page
+- finance and reporting pages
+- printable financial report export page
 
-## Database design
+### Order operations
 
-The Prisma schema includes the requested core entities and the commerce-specific extensions needed for a serious stationery platform:
+- unique order number generation
+- customer, billing, and shipping details capture
+- payment record creation
+- invoice record creation
+- delivery record creation
+- fulfillment and packaging history creation
 
-- `users`, `roles`, `customers`, `addresses`
-- `products`, `product_images`, `categories`, `brands`
-- `suppliers`, `supplier_products`
-- `inventory_logs`, `stock_movements`
-- `orders`, `order_items`, `payments`, `expenses`
-- `product_variants`, `product_price_tiers`
+## Database model
+
+The Prisma schema now includes business-oriented operational entities:
+
+- `users`, `roles`, `customer_profiles`, `customers`, `addresses`
+- `products`, `product_images`, `product_variants`, `categories`, `brands`
+- `inventory`, `inventory_logs`, `stock_movements`
+- `carts`, `cart_items`
+- `orders`, `order_items`, `payments`
+- `invoices`, `invoice_items`
+- `deliveries`, `delivery_tracking_events`
+- `fulfillment_status_history`, `packaging_status_history`
+- `expenses`, `financial_reports`
+- `audit_logs`, `notifications`
 - NextAuth support tables: `accounts`, `sessions`, `verification_tokens`
 
-Commerce logic covered in the schema:
+The schema is structured for:
 
-- cost price, retail price, pack price
-- bulk quantity pricing tiers
-- minimum order quantity
-- supplier cost tracking
-- stock movement history
-- profit estimation fields on orders
-- soft delete support on operational entities
-- indexes on high-traffic lookup paths
+- customer accounts and retail checkout
+- invoice and delivery linkage
+- status history and auditability
+- inventory visibility and low stock tracking
+- PDF-ready document regeneration from stored data
+- future expansion into more complete ERP processes
 
 ## Project structure
 
@@ -79,17 +86,24 @@ Commerce logic covered in the schema:
 src/
   app/
     (store)/
-      page.tsx
+      account/
+      cart/
       catalog/
       categories/
-      products/
-      cart/
       checkout/
-      account/
+      products/
     admin/
+      deliveries/
+      invoices/
+      reports/
     api/
+      admin/
+      auth/
+      checkout/
   components/
+    account/
     admin/
+    documents/
     forms/
     layout/
     shared/
@@ -99,15 +113,12 @@ src/
   data/
     demo-store.ts
   lib/
+    admin/
     auth.ts
+    checkout.ts
     demo-data.ts
-    env.ts
-    format.ts
-    navigation.ts
+    operations.ts
     prisma.ts
-    wholesale.ts
-  store/
-    cart-store.ts
 prisma/
   schema.prisma
   seed.ts
@@ -130,7 +141,7 @@ DEMO_ADMIN_PASSWORD="ChangeMe123!"
 ```bash
 npm install
 npx prisma generate
-npm run db:migrate
+npm run db:push
 npm run db:seed
 npm run dev
 ```
@@ -153,32 +164,17 @@ npm run db:seed
 
 - Admin: `admin@maktba.tn` / `ChangeMe123!`
 - Manager: `manager@maktba.tn` / `Manager123!`
+- Seeded customer account: `client@maktba.tn` / `Client123!`
 
-Only `ADMIN` can access `/admin`. Middleware and server-side role checks redirect non-admin users away from dashboard routes.
+## Notes
 
-## Seed data included
+- Customer registration becomes live when PostgreSQL is connected and seeded.
+- Checkout uses `/api/checkout` and creates structured business records when the database is available.
+- Invoice and financial report exports are implemented as professional print/PDF-ready document pages.
+- After Prisma schema changes, run `npm run db:push` and redeploy so Supabase stays in sync.
 
-The seed and demo dataset contain realistic Tunisian stationery examples:
-
-- school supplies
-- office supplies
-- paper and printing products
-- creative kits
-- bagagerie
-- promotional packs
-- Tunisian suppliers
-- customer and admin records
-- orders, payments, expenses, and stock activity
-
-## Verification completed
+## Verification
 
 - `npm run typecheck`
 - `npm run lint`
 - `npm run build`
-
-## Notes
-
-- The UI runs fully with the included demo dataset, so you can explore the product immediately.
-- The Prisma schema and seed pipeline are ready for a real PostgreSQL connection.
-- The current auth route includes admin-only role protection and demo credentials for local validation.
-- CMS API routes are live when PostgreSQL is configured; without a database the admin pages fall back to demo-mode data for safe UI previewing.
