@@ -1,4 +1,4 @@
-import { PrismaClient, RoleKey } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 import {
   demoBrands,
@@ -11,6 +11,12 @@ import {
 } from "../src/data/demo-store";
 
 const prisma = new PrismaClient();
+const ROLE_KEYS = {
+  ADMIN: "ADMIN",
+  MANAGER: "MANAGER",
+  STAFF: "STAFF",
+  CUSTOMER: "CUSTOMER",
+} as const;
 
 async function main() {
   await prisma.stockMovement.deleteMany();
@@ -35,22 +41,22 @@ async function main() {
   const roles = await Promise.all(
     [
       {
-        key: RoleKey.ADMIN,
+        key: ROLE_KEYS.ADMIN,
         name: "Admin",
         description: "Full platform access and configuration rights.",
       },
       {
-        key: RoleKey.MANAGER,
+        key: ROLE_KEYS.MANAGER,
         name: "Manager",
         description: "Operational management for catalog, stock, and orders.",
       },
       {
-        key: RoleKey.STAFF,
+        key: ROLE_KEYS.STAFF,
         name: "Staff",
         description: "Warehouse, support, and invoicing workflows.",
       },
       {
-        key: RoleKey.CUSTOMER,
+        key: ROLE_KEYS.CUSTOMER,
         name: "Customer",
         description: "Wholesale portal access for B2B buyers.",
       },
@@ -64,7 +70,7 @@ async function main() {
       name: "Maktba Admin",
       email: process.env.DEMO_ADMIN_EMAIL ?? "admin@maktba.tn",
       phone: "+216 20 300 300",
-      roleId: roleByKey.get(RoleKey.ADMIN)!.id,
+      roleId: roleByKey.get(ROLE_KEYS.ADMIN)!.id,
       isActive: true,
     },
   });
