@@ -343,3 +343,16 @@ export function formatOperationalTimeline(entries: TimelineEntry[]) {
     displayDate: formatDate(entry.at),
   }));
 }
+
+export function getReportSlug(report: FinancialSnapshot) {
+  return report.periodLabel
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export function getReportingSnapshotBySlug(slug: string) {
+  return reportingSnapshots.find((report) => getReportSlug(report) === slug);
+}

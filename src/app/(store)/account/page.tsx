@@ -69,7 +69,7 @@ export default async function AccountPage({
                     </Link>
                   ) : null}
                 </div>
-                <StoreAuthControls />
+                <StoreAuthControls variant="account" />
               </CardContent>
             </Card>
           ) : (

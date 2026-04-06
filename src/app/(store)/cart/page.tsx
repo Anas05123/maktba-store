@@ -2,13 +2,25 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Minus, Plus, ShoppingBag, Sparkles, Trash2, Truck } from "lucide-react";
+import {
+  ArrowRight,
+  CreditCard,
+  Minus,
+  PackageCheck,
+  Plus,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  Trash2,
+  Truck,
+} from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { featuredProducts } from "@/lib/demo-data";
 import { formatTnd } from "@/lib/format";
+import { getSafeImageSrc } from "@/lib/images";
 import {
   FREE_SHIPPING_THRESHOLD,
   getCartSnapshot,
@@ -51,7 +63,7 @@ export default function CartPage() {
               </div>
             </div>
             <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
-              Revoyez vos articles, ajustez les quantites et profitez des meilleurs prix pack avant de passer a la commande.
+              Revoyez vos articles, ajustez les quantites et confirmez facilement votre commande.
             </p>
           </div>
 
@@ -82,6 +94,46 @@ export default function CartPage() {
               style={{ width: `${progress}%` }}
             />
           </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {[
+            {
+              icon: CreditCard,
+              title: "Paiement a la livraison",
+              text: "Une validation simple pour les parents.",
+              tone: "border-amber-200/80 bg-amber-50/70",
+            },
+            {
+              icon: PackageCheck,
+              title: "Commande claire",
+              text: "Panier, livraison et total visibles d'un coup d'oeil.",
+              tone: "border-sky-200/80 bg-sky-50/70",
+            },
+            {
+              icon: ShieldCheck,
+              title: "Recapitulatif rassurant",
+              text: "Les produits, quantites et montants restent faciles a verifier.",
+              tone: "border-emerald-200/80 bg-emerald-50/70",
+            },
+          ].map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <div
+                key={item.title}
+                className={`flex items-center gap-3 rounded-[24px] border p-4 ${item.tone}`}
+              >
+                <div className="flex size-10 items-center justify-center rounded-2xl bg-white shadow-sm">
+                  <Icon className="size-4 text-slate-900" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-950">{item.title}</p>
+                  <p className="text-xs leading-5 text-slate-600">{item.text}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -114,10 +166,7 @@ export default function CartPage() {
                   <div className="grid gap-5 md:grid-cols-[120px_1fr]">
                     <div className="relative aspect-square overflow-hidden rounded-[24px] bg-muted/40">
                       <Image
-                        src={
-                          line.product.images[0] ??
-                          "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80"
-                        }
+                        src={getSafeImageSrc(line.product.images[0])}
                         alt={line.product.name}
                         fill
                         className="object-cover"
@@ -127,9 +176,11 @@ export default function CartPage() {
                     <div className="space-y-4">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-lg font-semibold text-slate-950">{line.product.name}</p>
+                          <p className="line-clamp-2 text-lg font-semibold text-slate-950">
+                            {line.product.name}
+                          </p>
                           <p className="mt-1 text-sm text-muted-foreground">
-                            {line.product.categoryName} • {formatTnd(line.unitPrice)} / unite
+                            {line.product.categoryName} - {formatTnd(line.unitPrice)} / article
                           </p>
                         </div>
                         <button
@@ -166,9 +217,9 @@ export default function CartPage() {
 
                         <div className="text-right">
                           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                            Total
+                            Total ligne
                           </p>
-                          <p className="mt-1 text-xl font-semibold text-slate-950">
+                          <p className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
                             {formatTnd(line.lineTotal)}
                           </p>
                         </div>
@@ -185,7 +236,9 @@ export default function CartPage() {
               <CardContent className="p-5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="size-4 text-amber-500" />
-                  <p className="text-sm font-semibold text-slate-950">Suggestions pour completer votre panier</p>
+                  <p className="text-sm font-semibold text-slate-950">
+                    Suggestions pour completer votre panier
+                  </p>
                 </div>
                 <div className="mt-4 grid gap-3 md:grid-cols-3">
                   {recommendedProducts.map((product) => (
@@ -231,10 +284,8 @@ export default function CartPage() {
               </div>
             </div>
 
-            <div className="space-y-3 text-sm text-white/75">
-              <p>Paiement a la livraison disponible</p>
-              <p>Prix en TND et packs appliques automatiquement</p>
-              <p>Commande simple, claire et rapide</p>
+            <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 text-sm text-white/75">
+              Paiement a la livraison, prix en TND et recapitulatif simple avant la confirmation finale.
             </div>
 
             <div className="grid gap-3">

@@ -11,10 +11,10 @@ export function FinancialReportDocument({
   showActions?: boolean;
 }) {
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 print:max-w-none print:px-0 print:py-0">
       {showActions ? <DocumentActions /> : null}
 
-      <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm print:shadow-none">
+      <div className="rounded-[34px] border border-slate-200 bg-white p-8 shadow-[0_28px_70px_rgba(15,23,42,0.08)] print:rounded-none print:border-0 print:shadow-none">
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">
@@ -25,7 +25,7 @@ export function FinancialReportDocument({
               Periode du {formatDate(report.from)} au {formatDate(report.to)}
             </p>
           </div>
-          <div className="rounded-3xl bg-slate-950 p-6 text-white">
+          <div className="rounded-[28px] bg-slate-950 p-6 text-white">
             <p className="text-sm text-white/60">Synthese business</p>
             <p className="mt-2 text-2xl font-semibold">{formatTnd(report.revenue)}</p>
             <p className="mt-2 text-sm text-white/70">Chiffre d&apos;affaires total de la periode</p>
@@ -39,7 +39,7 @@ export function FinancialReportDocument({
             { label: "Livraison", value: formatTnd(report.deliveryCosts) },
             { label: "Profit estime", value: formatTnd(report.estimatedProfit) },
           ].map((item) => (
-            <div key={item.label} className="rounded-3xl bg-slate-50 p-5">
+            <div key={item.label} className="rounded-[28px] bg-slate-50 p-5">
               <p className="text-sm text-muted-foreground">{item.label}</p>
               <p className="mt-2 text-2xl font-semibold">{item.value}</p>
             </div>
@@ -49,7 +49,7 @@ export function FinancialReportDocument({
         <Separator className="my-8" />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-3xl border border-slate-200 p-5">
+          <div className="rounded-[28px] border border-slate-200 p-5">
             <p className="text-lg font-semibold">Top categories</p>
             <div className="mt-4 space-y-3">
               {report.topCategories.map((category) => (
@@ -60,7 +60,7 @@ export function FinancialReportDocument({
               ))}
             </div>
           </div>
-          <div className="rounded-3xl border border-slate-200 p-5">
+          <div className="rounded-[28px] border border-slate-200 p-5">
             <p className="text-lg font-semibold">Top produits</p>
             <div className="mt-4 space-y-3">
               {report.topProducts.map((product) => (
@@ -73,7 +73,7 @@ export function FinancialReportDocument({
           </div>
         </div>
 
-        <div className="mt-8 rounded-3xl bg-slate-50 p-5 text-sm leading-7 text-muted-foreground">
+        <div className="mt-8 rounded-[28px] bg-slate-50 p-5 text-sm leading-7 text-muted-foreground">
           <p>
             Resume: la periode montre {report.orders} commandes pour un chiffre d&apos;affaires de{" "}
             {formatTnd(report.revenue)}. Les charges consolidees atteignent {formatTnd(report.expenses)}

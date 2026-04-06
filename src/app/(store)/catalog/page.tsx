@@ -9,9 +9,11 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { categories, products } from "@/lib/demo-data";
+import { getStorefrontCatalogData } from "@/lib/storefront";
 
-export default function CatalogPage() {
+export default async function CatalogPage() {
+  const { categories, products } = await getStorefrontCatalogData();
+
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 sm:px-6">
       <div className="rounded-[28px] border border-white/70 bg-white/95 px-5 py-4 shadow-sm">
@@ -33,10 +35,10 @@ export default function CatalogPage() {
           <div className="space-y-3">
             <p className="text-sm uppercase tracking-[0.18em] text-primary">Catalogue papeterie</p>
             <h1 className="text-4xl font-semibold text-balance">
-              Une navigation simple, des prix visibles, des produits faciles a trouver
+              Des fournitures scolaires faciles a trouver pour toute la famille
             </h1>
             <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
-              Parcourez les rayons comme sur une vraie boutique tunisienne: fournitures scolaires, bagagerie, papier, bureau et articles creatifs, avec un affichage clair et rapide.
+              Parcourez les rayons comme dans une vraie librairie de quartier: cartables, cahiers, stylos, packs pratiques et papeterie utile, avec un affichage clair et rassurant.
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">

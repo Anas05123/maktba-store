@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { categories, products } from "@/lib/demo-data";
+import { getStorefrontApiData } from "@/lib/storefront";
 
-export function GET() {
+export async function GET() {
+  const { categories, products } = await getStorefrontApiData();
+
   return NextResponse.json({
     categories,
     products,

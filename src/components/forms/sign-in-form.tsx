@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -19,7 +18,6 @@ const signInSchema = z.object({
 type SignInValues = z.infer<typeof signInSchema>;
 
 export function SignInForm() {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -39,6 +37,7 @@ export function SignInForm() {
         email: values.email,
         password: values.password,
         redirect: false,
+        callbackUrl: "/account",
       });
 
       if (!result?.ok) {
@@ -46,8 +45,7 @@ export function SignInForm() {
         return;
       }
 
-      router.push("/account");
-      router.refresh();
+      window.location.assign(result.url ?? "/account");
     });
   });
 

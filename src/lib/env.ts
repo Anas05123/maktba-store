@@ -7,6 +7,7 @@ const envSchema = z
     NEXTAUTH_SECRET: z.string().min(16).optional(),
     DEMO_ADMIN_EMAIL: z.string().email().optional(),
     DEMO_ADMIN_PASSWORD: z.string().min(8).optional(),
+    OWNER_FINANCE_PASSWORD: z.string().min(8).optional(),
   })
   .partial();
 
@@ -18,6 +19,9 @@ export const env = {
   NEXTAUTH_SECRET: parsed.success ? parsed.data.NEXTAUTH_SECRET : undefined,
   DEMO_ADMIN_EMAIL: parsed.success ? parsed.data.DEMO_ADMIN_EMAIL : undefined,
   DEMO_ADMIN_PASSWORD: parsed.success ? parsed.data.DEMO_ADMIN_PASSWORD : undefined,
+  OWNER_FINANCE_PASSWORD:
+    process.env.OWNER_FINANCE_PASSWORD?.trim() ||
+    (parsed.success ? parsed.data.OWNER_FINANCE_PASSWORD : undefined),
 };
 
 export const hasDatabaseUrl = Boolean(env.DATABASE_URL);

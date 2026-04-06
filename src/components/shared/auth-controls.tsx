@@ -8,7 +8,16 @@ import { useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 
-export function StoreAuthControls() {
+type StoreAuthControlsProps = {
+  variant?: "header" | "account";
+};
+
+const accountLinkClass =
+  "inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-border bg-white px-4 text-sm font-medium text-foreground transition hover:bg-muted";
+
+export function StoreAuthControls({
+  variant = "header",
+}: StoreAuthControlsProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -25,10 +34,19 @@ export function StoreAuthControls() {
     return (
       <Link
         href="/account"
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border bg-white px-4 text-sm font-medium text-foreground transition hover:bg-muted"
+        className={accountLinkClass}
       >
         <UserRound className="size-4" />
         Connexion
+      </Link>
+    );
+  }
+
+  if (variant === "header") {
+    return (
+      <Link href="/account" className={accountLinkClass}>
+        <UserRound className="size-4" />
+        Compte
       </Link>
     );
   }

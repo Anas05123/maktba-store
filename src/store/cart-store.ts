@@ -4,16 +4,37 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { products } from "@/lib/demo-data";
-import { getCustomerUnitPrice } from "@/lib/wholesale";
+
+type CartPriceTier = {
+  label: string;
+  minQuantity: number;
+  maxQuantity?: number;
+  price: number;
+};
+
+export type CartProductSnapshot = {
+  sku: string;
+  slug: string;
+  name: string;
+  images: string[];
+  categoryName?: string | undefined;
+  stockOnHand: number;
+  minimumOrderQuantity: number;
+  wholesalePrice: number;
+  retailPrice: number;
+  tags: string[];
+  priceTiers?: CartPriceTier[] | undefined;
+};
 
 type CartItem = {
   sku: string;
   quantity: number;
+  product?: CartProductSnapshot;
 };
 
 type CartState = {
   items: CartItem[];
-  addItem: (sku: string, quantity?: number) => void;
+  addItem: (product: CartProductSnapshot, quantity?: number) => void;
   updateQuantity: (sku: string, quantity: number) => void;
   removeItem: (sku: string) => void;
   clearCart: () => void;
@@ -23,21 +44,27 @@ export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
       items: [],
-      addItem: (sku, quantity = 1) =>
+      addItem: (product, quantity = 1) =>
         set((state) => {
-          const existing = state.items.find((item) => item.sku === sku);
+          const existing = state.items.find((item) => item.sku === product.sku);
 
           if (existing) {
             return {
               items: state.items.map((item) =>
-                item.sku === sku
-                  ? { ...item, quantity: item.quantity + quantity }
+                item.sku === product.sku
+                  ? {
+                      ...item,
+                      quantity: item.quantity + quantity,
+                      product: item.product ?? product,
+                    }
                   : item,
               ),
             };
           }
 
-          return { items: [...state.items, { sku, quantity }] };
+          return {
+            items: [...state.items, { sku: product.sku, quantity, product }],
+          };
         }),
       updateQuantity: (sku, quantity) =>
         set((state) => ({
@@ -60,11 +87,16 @@ export const useCartStore = create<CartState>()(
 
 export const FREE_SHIPPING_THRESHOLD = 120;
 
+function getSnapshotUnitPrice(product: CartProductSnapshot) {
+  return product.retailPrice;
+}
+
 export function getCartSnapshot(items: CartItem[]) {
   const lines = items.flatMap((item) => {
-    const product = products.find((entry) => entry.sku === item.sku);
+    const product = item.product ?? products.find((entry) => entry.sku === item.sku);
     if (!product) return [];
-    const unitPrice = getCustomerUnitPrice(product, item.quantity);
+    const unitPrice = getSnapshotUnitPrice(product);
+
     return [
       {
         ...item,

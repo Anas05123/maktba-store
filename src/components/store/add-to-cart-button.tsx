@@ -4,14 +4,14 @@ import { ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/store/cart-store";
+import { type CartProductSnapshot, useCartStore } from "@/store/cart-store";
 
 export function AddToCartButton({
-  sku,
+  product,
   label = "Ajouter au panier",
   quantity = 1,
 }: {
-  sku: string;
+  product: CartProductSnapshot;
   label?: string;
   quantity?: number;
 }) {
@@ -20,7 +20,7 @@ export function AddToCartButton({
   return (
     <Button
       onClick={() => {
-        addItem(sku, quantity);
+        addItem(product, quantity);
         toast.success("Produit ajoute au panier");
       }}
       className="rounded-full"

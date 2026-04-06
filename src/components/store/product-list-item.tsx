@@ -7,6 +7,7 @@ import { AddToCartButton } from "@/components/store/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { formatTnd } from "@/lib/format";
+import { getSafeImageSrc } from "@/lib/images";
 
 export function ProductListItem({
   product,
@@ -22,11 +23,21 @@ export function ProductListItem({
     minimumOrderQuantity: number;
     retailPrice: number;
     wholesalePrice: number;
-    brandName?: string;
-    categoryName?: string;
+    brandName?: string | undefined;
+    categoryName?: string | undefined;
+    priceTiers?:
+      | Array<{
+          label: string;
+          minQuantity: number;
+          maxQuantity?: number;
+          price: number;
+        }>
+      | undefined;
   };
 }) {
-  const quantity = Math.max(1, product.minimumOrderQuantity);
+  const quantity = 1;
+  const helperTag =
+    product.retailPrice <= 15 ? "Petit budget" : "Bon choix pour la rentree";
 
   return (
     <Card className="overflow-hidden rounded-[28px] border-white/70 bg-white/95 shadow-sm transition hover:shadow-lg">
@@ -36,10 +47,7 @@ export function ProductListItem({
           className="relative mx-auto block aspect-square w-full max-w-[180px] overflow-hidden rounded-2xl bg-muted/40"
         >
           <Image
-            src={
-              product.images[0] ??
-              "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80"
-            }
+            src={getSafeImageSrc(product.images[0])}
             alt={product.name}
             fill
             className="object-cover"
@@ -79,27 +87,21 @@ export function ProductListItem({
               {product.stockOnHand > 0 ? "En stock" : "Sur commande"}
             </span>
             <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
-              Des {quantity} pieces
+              Prix simple et visible
             </span>
-            {product.wholesalePrice < product.retailPrice ? (
-              <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700">
-                Pack malin disponible
-              </span>
-            ) : null}
+            <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700">
+              {helperTag}
+            </span>
           </div>
         </div>
 
         <div className="flex flex-col items-start gap-3 rounded-[24px] bg-muted/35 p-4 md:items-end">
           <div className="w-full md:text-right">
-            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Prix</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Prix unitaire</p>
             <p className="mt-2 text-3xl font-semibold text-foreground">
               {formatTnd(product.retailPrice)}
             </p>
-            {product.wholesalePrice < product.retailPrice ? (
-              <p className="mt-1 text-sm text-muted-foreground">
-                Pack {formatTnd(product.wholesalePrice)}
-              </p>
-            ) : null}
+            <p className="mt-1 text-sm text-muted-foreground">TND clair, sans surprise</p>
           </div>
 
           <div className="flex w-full flex-col gap-2">
@@ -109,7 +111,23 @@ export function ProductListItem({
             >
               Voir le produit
             </Link>
-            <AddToCartButton sku={product.sku} quantity={quantity} />
+            <AddToCartButton
+              product={{
+                sku: product.sku,
+                slug: product.slug,
+                name: product.name,
+                images: product.images,
+                categoryName: product.categoryName,
+                stockOnHand: product.stockOnHand,
+                minimumOrderQuantity: product.minimumOrderQuantity,
+                wholesalePrice: product.wholesalePrice,
+                retailPrice: product.retailPrice,
+                tags: product.tags,
+                priceTiers: product.priceTiers,
+              }}
+              quantity={quantity}
+              label="Ajouter au panier"
+            />
           </div>
         </div>
       </div>

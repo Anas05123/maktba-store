@@ -3,31 +3,27 @@ import { formatTnd } from "@/lib/format";
 
 export function PriceBlock({
   primaryPrice,
-  supportPrice,
+  helperText = "Prix affiche en TND",
+  highlightText,
 }: {
   primaryPrice: number;
-  supportPrice: number;
+  helperText?: string;
+  highlightText?: string;
 }) {
-  const savings = Math.max(primaryPrice - supportPrice, 0);
-
   return (
     <div className="space-y-3">
-      <div className="flex items-end gap-3">
+      <div className="flex items-end justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            Prix
+            Prix conseille
           </p>
           <p className="text-2xl font-semibold">{formatTnd(primaryPrice)}</p>
         </div>
-        {supportPrice < primaryPrice ? (
-          <p className="pb-1 text-sm text-muted-foreground">
-            Pack {formatTnd(supportPrice)}
-          </p>
-        ) : null}
+        <p className="pb-1 text-sm text-muted-foreground">{helperText}</p>
       </div>
-      {savings > 0 ? (
+      {highlightText ? (
         <Badge variant="secondary" className="rounded-full">
-          Economisez {formatTnd(savings)}
+          {highlightText}
         </Badge>
       ) : null}
     </div>

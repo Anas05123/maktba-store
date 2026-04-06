@@ -8,9 +8,13 @@ export default function StoreLayout({
 }>) {
   return (
     <div className="flex min-h-screen flex-col">
-      <StoreHeader />
+      <div className="print:hidden">
+        <StoreHeader />
+      </div>
       <main className="flex-1">{children}</main>
-      <StoreFooter />
+      <div className="print:hidden">
+        <StoreFooter />
+      </div>
     </div>
   );
 }

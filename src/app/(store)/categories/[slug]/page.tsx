@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -10,7 +11,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { categories, getCategoryBySlug, products } from "@/lib/demo-data";
+import { getSafeImageSrc } from "@/lib/images";
+import { getStorefrontCategoryData } from "@/lib/storefront";
 
 const categoryDetails: Record<
   string,
@@ -51,12 +53,14 @@ export default async function CategoryDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const { categories, category, products, productsByCategory } =
+    await getStorefrontCategoryData(slug);
 
   if (!category) {
     notFound();
   }
   const detail = categoryDetails[slug];
+  const previewProducts = productsByCategory.slice(0, 3);
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 sm:px-6">
@@ -78,12 +82,54 @@ export default async function CategoryDetailPage({
         </Breadcrumb>
       </div>
 
-      <div className="rounded-[32px] border border-white/70 bg-white/95 p-6 shadow-sm">
-        <p className="text-sm uppercase tracking-[0.18em] text-primary">Categorie</p>
-        <h1 className="mt-3 text-4xl font-semibold">{category.name}</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
-          {category.description}
-        </p>
+      <div className="grid gap-6 rounded-[32px] border border-white/70 bg-white/95 p-6 shadow-sm lg:grid-cols-[1.05fr_0.95fr]">
+        <div>
+          <p className="text-sm uppercase tracking-[0.18em] text-primary">Categorie</p>
+          <h1 className="mt-3 text-4xl font-semibold">{category.name}</h1>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
+            {category.description}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {[
+              `${productsByCategory.length} produits`,
+              "Prix visibles en TND",
+              "Selection utile pour les familles",
+            ].map((item) => (
+              <span
+                key={item}
+                className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          {previewProducts.map((product) => (
+            <Link
+              key={product.sku}
+              href={`/products/${product.slug}`}
+              className="group grid gap-3 rounded-[24px] border border-white/70 bg-slate-50/90 p-3 shadow-sm transition hover:-translate-y-0.5 sm:grid-cols-[72px_1fr] lg:grid-cols-[88px_1fr]"
+            >
+              <div className="relative aspect-square overflow-hidden rounded-[18px] bg-white">
+                <Image
+                  src={getSafeImageSrc(product.images[0])}
+                  alt={product.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="line-clamp-2 text-sm font-semibold text-slate-950">{product.name}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{product.shortDescription}</p>
+                <div className="mt-2 inline-flex rounded-full bg-white px-2.5 py-1 text-xs font-medium text-primary shadow-sm">
+                  Voir le produit
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {detail ? (
@@ -108,7 +154,7 @@ export default async function CategoryDetailPage({
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-white/50">Produits</p>
                 <p className="mt-2 text-2xl font-semibold">
-                  {products.filter((product) => product.categorySlug === slug).length}
+                  {productsByCategory.length}
                 </p>
               </div>
               <div>

@@ -1,0 +1,53 @@
+You are helping me continue work on an existing Next.js app in:
+C:\Users\Anas\Desktop\MAKTBA WEBSITE
+
+Context:
+This is a Tunisian stationery e-commerce system (B2C), NOT wholesale. It includes a public store and a private admin CMS. We already use Next.js App Router, TypeScript strict, Tailwind, shadcn/ui, Prisma, PostgreSQL (Supabase), NextAuth, React Hook Form + Zod, Recharts.
+
+Key goals:
+- Keep it a real business system: orders, delivery workflow, invoices, reporting, admin CMS
+- Admin dashboard is private (role-based ADMIN only)
+- Customer accounts, order tracking, invoice download
+- Strong UX and readable UI
+- Real CRUD connected to PostgreSQL (no demo mode)
+
+Recent fixes:
+- `DATABASE_URL` now works; Prisma client regeneration fixed
+- Added `predev` to run `prisma generate`
+- Synced DB schema with `db:push` so new columns exist (e.g. `Category.seoTitle`, `Product.specifications`)
+- Fixed env handling so live mode isn’t disabled by optional env values
+- Reduced hydration warning by adding `suppressHydrationWarning` in `src/app/layout.tsx`
+- Admin CRUD now works with real DB
+
+Important files to review:
+- `prisma/schema.prisma`
+- `src/lib/env.ts`
+- `src/lib/admin/cms.ts`
+- `src/lib/prisma.ts`
+- Admin pages under `src/app/admin/*`
+- New BL (Bon de Livraison) backend files:
+  - `src/app/api/admin/delivery-notes/route.ts`
+  - `src/app/api/admin/delivery-notes/[id]/route.ts`
+  - `src/lib/admin/delivery-notes.ts`
+  - `src/lib/delivery-note-math.ts`
+
+Current major task:
+Build a professional Tunisian ERP-style “Bon de Livraison” module (document-based). Must include:
+- Toolbar (New/Save/Delete/Print/Search/Prev/Next)
+- Document status Draft/Validated/Cancelled
+- Document info (number BL000XX/YYYY, date, agent, warehouse)
+- Client panel (code, name, address, MF, solde, encours, credit limit warning)
+- Dense ERP product grid with calculations (code, designation, qty, unit price, discount, HT, total)
+- Left line action panel (add/remove line, discount, change unit, TVA)
+- TVA breakdown per rate (0,10,16,22)
+- Totals (brut, remise, HT, TVA, net)
+- Comments + history modal
+- Validation rules and stock movement logic
+- Connect to PostgreSQL (delivery_notes, items, warehouses, stock, movements, history)
+- Status locking (validated = read-only)
+- Prepared linking to Devis/Facture/Avoir/Payments
+
+Note:
+The BL UI component file is NOT done yet. You must finish it and replace the admin deliveries page with it.
+
+Please inspect the existing code first, then continue the ERP BL module implementation with strict business logic and dense UI.

@@ -24,14 +24,20 @@ type Product = {
   name: string;
   shortDescription: string;
   categorySlug: string;
-  categoryName?: string;
-  brandName?: string;
+  categoryName?: string | undefined;
+  brandName?: string | undefined;
   tags: string[];
   images: string[];
   stockOnHand: number;
   minimumOrderQuantity: number;
   wholesalePrice: number;
   retailPrice: number;
+  priceTiers?: Array<{
+    label: string;
+    minQuantity: number;
+    maxQuantity?: number;
+    price: number;
+  }> | undefined;
 };
 
 type PriceBand = "all" | "under10" | "10to25" | "over25";
@@ -234,17 +240,17 @@ export function CatalogFilters({
           </div>
 
           <div className="rounded-[28px] bg-slate-950 p-5 text-white">
-            <p className="text-sm uppercase tracking-[0.18em] text-white/55">Service client</p>
+            <p className="text-sm uppercase tracking-[0.18em] text-white/55">Aide parents</p>
             <div className="mt-4 space-y-3 text-sm text-white/80">
-              <p>Prix affiches en TND</p>
-              <p>Paiement a la livraison</p>
+              <p>Prix affiches en TND, faciles a comparer</p>
+              <p>Paiement a la livraison disponible</p>
               <p>Livraison sur toute la Tunisie</p>
             </div>
             <Link
-              href="/checkout"
+              href="/categories/packs-grossiste"
               className="mt-5 inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-sm font-medium text-slate-950"
             >
-              Commander maintenant
+              Voir les packs scolaires
             </Link>
           </div>
         </div>

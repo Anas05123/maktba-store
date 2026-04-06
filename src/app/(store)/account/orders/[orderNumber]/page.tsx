@@ -109,7 +109,9 @@ export default async function AccountOrderDetailPage({
               <p><span className="text-muted-foreground">Date estimee:</span> {formatDate(order.delivery.estimatedDeliveryDate)}</p>
               <p><span className="text-muted-foreground">Adresse:</span> {order.shippingAddress}, {order.shippingCity}</p>
               <Link
-                href={`/account/orders/${order.orderNumber}/invoice`}
+                href={`/documents/invoices/${order.orderNumber}`}
+                target="_blank"
+                rel="noreferrer"
                 className="inline-flex h-10 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground"
               >
                 Telecharger la facture

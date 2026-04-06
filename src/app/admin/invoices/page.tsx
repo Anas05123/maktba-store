@@ -48,7 +48,9 @@ export default function AdminInvoicesPage() {
                   <p className="font-semibold">{formatTnd(invoice.total)}</p>
                   {order ? (
                     <Link
-                      href={`/account/orders/${order.orderNumber}/invoice`}
+                      href={`/documents/invoices/${order.orderNumber}`}
+                      target="_blank"
+                      rel="noreferrer"
                       className="inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-sm font-medium text-slate-950"
                     >
                       Ouvrir la facture

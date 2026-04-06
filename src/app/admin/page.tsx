@@ -1,9 +1,11 @@
 import {
+  ArrowRight,
   ChartColumn,
   CircleDollarSign,
   ShoppingCart,
   TriangleAlert,
 } from "lucide-react";
+import Link from "next/link";
 
 import { MetricCard } from "@/components/admin/metric-card";
 import { RevenueChart } from "@/components/admin/performance-chart";
@@ -14,6 +16,81 @@ import { formatTnd } from "@/lib/format";
 export default function AdminDashboardPage() {
   return (
     <div className="space-y-8">
+      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <Card className="rounded-[32px] border-white/10 bg-slate-900 bg-[linear-gradient(135deg,rgba(14,165,233,0.10),rgba(15,23,42,0.96))] text-white shadow-2xl shadow-slate-950/20">
+          <CardContent className="space-y-5 p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-[0.18em] text-white/45">Vue d&apos;ensemble</p>
+                <h1 className="mt-2 text-3xl font-semibold">Le tableau de bord du jour</h1>
+                <p className="mt-2 max-w-2xl text-sm leading-7 text-white/65">
+                  Suivez les commandes, le stock sensible et les indicateurs de pilotage depuis un seul ecran.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/admin/orders"
+                  className="inline-flex h-12 items-center justify-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground"
+                >
+                  Ouvrir les commandes
+                </Link>
+                <Link
+                  href="/admin/products"
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-white/15 bg-white/5 px-5 text-sm font-medium text-white transition hover:bg-white/10"
+                >
+                  Gerer le catalogue
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {[
+                {
+                  title: "Urgences",
+                  note: `${dashboardSummary.lowStockItems} references a surveiller`,
+                },
+                {
+                  title: "Flux commandes",
+                  note: `${dashboardSummary.orders} commandes actives sur la periode`,
+                },
+                {
+                  title: "Lecture rapide",
+                  note: "Stock, ventes et owner area accessibles sans quitter le dashboard",
+                },
+              ].map((item) => (
+                <div key={item.title} className="rounded-[24px] border border-white/10 bg-white/5 p-4">
+                  <p className="font-semibold">{item.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-white/60">{item.note}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-[32px] border-white/10 bg-white/5 text-white">
+          <CardHeader>
+            <CardTitle>Raccourcis utiles</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[
+              { label: "Produits", href: "/admin/products" },
+              { label: "Categories", href: "/admin/categories" },
+              { label: "Stock", href: "/admin/inventory" },
+              { label: "Finance proprietaire", href: "/admin/finance" },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center justify-between rounded-[22px] border border-white/10 bg-white/5 px-4 py-3 text-sm transition hover:bg-white/10"
+              >
+                <span>{item.label}</span>
+                <ArrowRight className="size-4 text-primary" />
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid gap-4 xl:grid-cols-4">
         <MetricCard
           title="Revenue"

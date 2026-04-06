@@ -6,8 +6,8 @@ import { ProductCard } from "@/components/store/product-card";
 import { PriceBlock } from "@/components/store/price-block";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { getProductBySlug, products } from "@/lib/demo-data";
+import { getSafeImageSrc } from "@/lib/images";
+import { getStorefrontProductData } from "@/lib/storefront";
 
 export default async function ProductPage({
   params,
@@ -15,16 +15,15 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const { product, similarProducts } = await getStorefrontProductData(slug);
 
   if (!product) {
     notFound();
   }
 
-  const startingQuantity = Math.max(1, product.minimumOrderQuantity);
-  const similarProducts = products
-    .filter((item) => item.categorySlug === product.categorySlug && item.slug !== product.slug)
-    .slice(0, 3);
+  const startingQuantity = 1;
+  const defaultPurchaseLabel = /pack/i.test(product.name) ? "1 pack" : "1 article";
+  const addToCartLabel = /pack/i.test(product.name) ? "Ajouter ce pack" : "Ajouter au panier";
 
   return (
     <div className="mx-auto max-w-7xl space-y-10 px-4 py-10 sm:px-6">
@@ -32,10 +31,7 @@ export default async function ProductPage({
         <div className="relative overflow-hidden rounded-[36px] border border-white/70 bg-white/92 shadow-lg shadow-slate-200/30">
           <div className="relative aspect-[4/3]">
             <Image
-              src={
-                product.images[0] ??
-                "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80"
-              }
+              src={getSafeImageSrc(product.images[0])}
               alt={product.name}
               fill
               className="object-cover"
@@ -70,8 +66,8 @@ export default async function ProductPage({
               <p className="mt-2 font-semibold">{product.brandName}</p>
             </div>
             <div className="rounded-3xl bg-muted/60 p-4">
-              <p className="text-sm text-muted-foreground">Quantite conseillee</p>
-              <p className="mt-2 font-semibold">Des {startingQuantity} pieces</p>
+              <p className="text-sm text-muted-foreground">Ajout rapide</p>
+              <p className="mt-2 font-semibold">{defaultPurchaseLabel}</p>
             </div>
             <div className="rounded-3xl bg-muted/60 p-4">
               <p className="text-sm text-muted-foreground">Stock disponible</p>
@@ -81,13 +77,26 @@ export default async function ProductPage({
 
           <PriceBlock
             primaryPrice={product.retailPrice}
-            supportPrice={product.wholesalePrice}
+            helperText="Prix en TND, paiement a la livraison"
+            highlightText="Un indispensable facile a commander"
           />
 
           <AddToCartButton
-            sku={product.sku}
+            product={{
+              sku: product.sku,
+              slug: product.slug,
+              name: product.name,
+              images: product.images,
+              categoryName: product.categoryName,
+              stockOnHand: product.stockOnHand,
+              minimumOrderQuantity: product.minimumOrderQuantity,
+              wholesalePrice: product.wholesalePrice,
+              retailPrice: product.retailPrice,
+              tags: product.tags,
+              priceTiers: product.priceTiers,
+            }}
             quantity={startingQuantity}
-            label={`Ajouter ${startingQuantity} au panier`}
+            label={addToCartLabel}
           />
         </div>
       </div>
@@ -95,24 +104,29 @@ export default async function ProductPage({
       <div className="grid gap-8 lg:grid-cols-[1fr_0.9fr]">
         <Card className="rounded-[32px] border-white/70 bg-white/92">
           <CardHeader>
-            <CardTitle>Offres selon la quantite</CardTitle>
+            <CardTitle>Bon a savoir</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableBody>
-                {product.priceTiers.map((tier) => (
-                  <TableRow key={tier.label}>
-                    <TableCell className="font-medium">{tier.label}</TableCell>
-                    <TableCell>
-                      {tier.maxQuantity
-                        ? `${tier.minQuantity} - ${tier.maxQuantity}`
-                        : `${tier.minQuantity}+`}
-                    </TableCell>
-                    <TableCell>{tier.price.toFixed(3)} TND</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardContent className="space-y-4">
+            <div className="rounded-3xl border p-4">
+              <p className="font-semibold">Commande simple</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Un clic ajoute {defaultPurchaseLabel.toLowerCase()} au panier. Vous pouvez ensuite ajuster la quantite si besoin.
+              </p>
+            </div>
+            <div className="rounded-3xl border p-4">
+              <p className="font-semibold">Paiement en Tunisie</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Prix affiches en TND avec paiement a la livraison pour un parcours d&apos;achat plus rassurant.
+              </p>
+            </div>
+            <div className="rounded-3xl border p-4">
+              <p className="font-semibold">Disponibilite</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {product.stockOnHand > 0
+                  ? `${product.stockOnHand} articles actuellement disponibles.`
+                  : "Produit disponible sur demande, selon arrivage."}
+              </p>
+            </div>
           </CardContent>
         </Card>
 

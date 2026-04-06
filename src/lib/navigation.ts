@@ -1,11 +1,17 @@
 import {
+  Backpack,
   BarChart3,
+  BookOpen,
   Boxes,
   CircleDollarSign,
   FileText,
   LayoutDashboard,
+  Package,
+  Palette,
   PackageSearch,
+  PenTool,
   ShoppingCart,
+  Star,
   Truck,
   Users2,
 } from "lucide-react";
@@ -14,22 +20,31 @@ export const storeNavigation = [
   { label: "Accueil", href: "/" },
   { label: "Catalogue", href: "/catalog" },
   { label: "Rayons", href: "/categories" },
-  { label: "Bons plans", href: "/categories/packs-grossiste" },
-  { label: "Rentre scolaire", href: "/categories/fournitures-scolaires" },
+  { label: "Packs", href: "/categories/packs-grossiste" },
+  { label: "Rentree", href: "/categories/fournitures-scolaires" },
+];
+
+export const storeShortcutNavigation = [
+  { label: "Cartables", href: "/categories/bagagerie", icon: Backpack },
+  { label: "Stylos", href: "/categories/fournitures-scolaires", icon: PenTool },
+  { label: "Cahiers", href: "/categories/papier-impression", icon: BookOpen },
+  { label: "Trousses", href: "/categories/bagagerie", icon: Package },
+  { label: "Creatif", href: "/categories/arts-creatifs", icon: Palette },
+  { label: "Bons plans", href: "/categories/packs-grossiste", icon: Star },
 ];
 
 export const dashboardNavigation = [
-  { label: "Vue d'ensemble", href: "/admin", icon: LayoutDashboard },
-  { label: "Produits", href: "/admin/products", icon: PackageSearch },
-  { label: "Categories", href: "/admin/categories", icon: Boxes },
-  { label: "Stock", href: "/admin/inventory", icon: Boxes },
-  { label: "Commandes", href: "/admin/orders", icon: ShoppingCart },
-  { label: "Livraisons", href: "/admin/deliveries", icon: Truck },
-  { label: "Factures", href: "/admin/invoices", icon: FileText },
-  { label: "Clients", href: "/admin/customers", icon: Users2 },
-  { label: "Fournisseurs", href: "/admin/suppliers", icon: Truck },
-  { label: "Finance", href: "/admin/finance", icon: CircleDollarSign },
-  { label: "Rapports", href: "/admin/reports", icon: BarChart3 },
+  { label: "Vue d'ensemble", href: "/admin", icon: LayoutDashboard, section: "Pilotage" },
+  { label: "Produits", href: "/admin/products", icon: PackageSearch, section: "Catalogue" },
+  { label: "Categories", href: "/admin/categories", icon: Boxes, section: "Catalogue" },
+  { label: "Stock", href: "/admin/inventory", icon: Boxes, section: "Operations" },
+  { label: "Commandes", href: "/admin/orders", icon: ShoppingCart, section: "Operations" },
+  { label: "Livraisons", href: "/admin/deliveries", icon: Truck, section: "Operations" },
+  { label: "Factures", href: "/admin/invoices", icon: FileText, section: "Operations" },
+  { label: "Clients", href: "/admin/customers", icon: Users2, section: "Relations" },
+  { label: "Fournisseurs", href: "/admin/suppliers", icon: Truck, section: "Relations" },
+  { label: "Finance", href: "/admin/finance", icon: CircleDollarSign, section: "Proprietaire", ownerOnly: true },
+  { label: "Rapports", href: "/admin/reports", icon: BarChart3, section: "Proprietaire", ownerOnly: true },
 ];
 
 export const tunisianGovernorates = [

@@ -19,7 +19,13 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    maxAge: 60 * 60 * 8,
+    updateAge: 60 * 60,
   },
+  jwt: {
+    maxAge: 60 * 60 * 8,
+  },
+  useSecureCookies: process.env.NODE_ENV === "production",
   providers: [
     CredentialsProvider({
       name: "Email and password",

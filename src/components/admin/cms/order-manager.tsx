@@ -24,6 +24,21 @@ type OrderRecord = {
   customerNotes: string;
 };
 
+const orderStatusOptions = [
+  { value: "PENDING", label: "En attente" },
+  { value: "CONFIRMED", label: "Confirmee" },
+  { value: "PICKING", label: "Preparation" },
+  { value: "READY_FOR_DELIVERY", label: "Prete pour livraison" },
+  { value: "SHIPPED", label: "Expediee" },
+  { value: "DELIVERED", label: "Livree" },
+  { value: "CANCELLED", label: "Annulee" },
+  { value: "RETURNED", label: "Retournee" },
+] as const;
+
+function getOrderStatusLabel(status: string) {
+  return orderStatusOptions.find((item) => item.value === status)?.label ?? status;
+}
+
 export function OrderManager() {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -58,6 +73,7 @@ export function OrderManager() {
 
   useEffect(() => {
     if (!current) return;
+
     setForm({
       status: current.status,
       receiverName: current.receiverName,
@@ -86,37 +102,145 @@ export function OrderManager() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[400px_1fr]">
+    <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
       <Card className="rounded-[28px] border-white/10 bg-white/5 text-white">
         <CardHeader>
           <CardTitle>Edition commande</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           {!liveMode ? (
             <div className="rounded-2xl border border-amber-400/30 bg-amber-300/10 p-4 text-sm text-amber-50">
               Mode demo: les modifications live necessitent PostgreSQL.
             </div>
           ) : null}
-          {message ? <div className="rounded-2xl border border-white/10 bg-white/10 p-3 text-sm">{message}</div> : null}
+          {message ? (
+            <div className="rounded-2xl border border-white/10 bg-white/10 p-3 text-sm">
+              {message}
+            </div>
+          ) : null}
+
           {current ? (
             <>
-              <select className="w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm" value={form.status} onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}>
-                {["PENDING", "CONFIRMED", "PICKING", "READY_FOR_DELIVERY", "SHIPPED", "DELIVERED", "CANCELLED", "RETURNED"].map((status) => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
-              <Input value={form.receiverName} onChange={(e) => setForm((prev) => ({ ...prev, receiverName: e.target.value }))} />
-              <Input value={form.receiverPhone} onChange={(e) => setForm((prev) => ({ ...prev, receiverPhone: e.target.value }))} />
-              <Input value={form.receiverCity} onChange={(e) => setForm((prev) => ({ ...prev, receiverCity: e.target.value }))} />
-              <Input value={form.receiverGovernorate} onChange={(e) => setForm((prev) => ({ ...prev, receiverGovernorate: e.target.value }))} />
-              <Textarea rows={3} value={form.receiverAddressLine} onChange={(e) => setForm((prev) => ({ ...prev, receiverAddressLine: e.target.value }))} />
-              <Textarea rows={3} value={form.customerNotes} onChange={(e) => setForm((prev) => ({ ...prev, customerNotes: e.target.value }))} />
-              <Button className="rounded-full" onClick={handleSave} disabled={!liveMode || isPending}>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-sm font-semibold text-white">{current.orderNumber}</p>
+                <p className="mt-1 text-sm text-white/60">{current.customerName}</p>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-slate-900 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.12em] text-white/50">Statut</p>
+                    <p className="mt-2 text-sm font-medium">
+                      {getOrderStatusLabel(current.status)}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-slate-900 px-4 py-3">
+                    <p className="text-xs uppercase tracking-[0.12em] text-white/50">Total</p>
+                    <p className="mt-2 text-sm font-medium">{formatTnd(current.total)}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-sm font-semibold text-white">Coordonnees de livraison</p>
+                <div className="mt-4 space-y-3">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-white/60">
+                      Statut de commande
+                    </p>
+                    <select
+                      className="w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm"
+                      value={form.status}
+                      onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
+                    >
+                      {orderStatusOptions.map((status) => (
+                        <option key={status.value} value={status.value}>
+                          {status.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-white/60">
+                      Nom du receveur
+                    </p>
+                    <Input
+                      placeholder="Nom du parent ou du receveur"
+                      value={form.receiverName}
+                      onChange={(e) => setForm((prev) => ({ ...prev, receiverName: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-white/60">
+                      Telephone
+                    </p>
+                    <Input
+                      placeholder="+216 ..."
+                      value={form.receiverPhone}
+                      onChange={(e) => setForm((prev) => ({ ...prev, receiverPhone: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium uppercase tracking-[0.12em] text-white/60">
+                        Ville
+                      </p>
+                      <Input
+                        placeholder="Ex: Ariana"
+                        value={form.receiverCity}
+                        onChange={(e) => setForm((prev) => ({ ...prev, receiverCity: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium uppercase tracking-[0.12em] text-white/60">
+                        Gouvernorat
+                      </p>
+                      <Input
+                        placeholder="Ex: Tunis"
+                        value={form.receiverGovernorate}
+                        onChange={(e) => setForm((prev) => ({ ...prev, receiverGovernorate: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-white/60">
+                      Adresse de livraison
+                    </p>
+                    <Textarea
+                      rows={3}
+                      placeholder="Rue, numero, immeuble, etage..."
+                      value={form.receiverAddressLine}
+                      onChange={(e) => setForm((prev) => ({ ...prev, receiverAddressLine: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-white/60">
+                      Note client
+                    </p>
+                    <Textarea
+                      rows={3}
+                      placeholder="Instructions utiles pour la livraison"
+                      value={form.customerNotes}
+                      onChange={(e) => setForm((prev) => ({ ...prev, customerNotes: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                className="rounded-full"
+                onClick={handleSave}
+                disabled={!liveMode || isPending}
+              >
                 Mettre a jour
               </Button>
             </>
           ) : (
-            <p className="text-sm text-white/60">Choisissez une commande pour modifier son statut ou ses details.</p>
+            <p className="text-sm text-white/60">
+              Choisissez une commande pour modifier son statut, le receveur ou l&apos;adresse de livraison.
+            </p>
           )}
         </CardContent>
       </Card>
@@ -129,10 +253,17 @@ export function OrderManager() {
                 <p className="text-lg font-semibold">{order.orderNumber}</p>
                 <p className="text-sm text-white/60">{order.customerName}</p>
                 <p className="mt-2 text-sm text-white/70">
-                  {order.status} • {formatTnd(order.total)}
+                  {getOrderStatusLabel(order.status)} • {formatTnd(order.total)}
+                </p>
+                <p className="mt-1 text-sm text-white/50">
+                  {order.receiverCity}, {order.receiverGovernorate}
                 </p>
               </div>
-              <Button variant="outline" className="rounded-full border-white/15 bg-white/5 text-white hover:bg-white/10" onClick={() => setSelectedId(order.id)}>
+              <Button
+                variant="outline"
+                className="rounded-full border-white/15 bg-white/5 text-white hover:bg-white/10"
+                onClick={() => setSelectedId(order.id)}
+              >
                 Editer
               </Button>
             </CardContent>

@@ -1,16 +1,13 @@
 "use client";
 
-import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider refetchOnWindowFocus>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-        {children}
-        <Toaster richColors position="top-right" />
-      </ThemeProvider>
+      {children}
+      <Toaster richColors position="top-right" />
     </SessionProvider>
   );
 }

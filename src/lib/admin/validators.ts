@@ -1,11 +1,19 @@
 import { OrderStatus } from "@prisma/client";
 import { z } from "zod";
 
+const imageReferenceSchema = z.string().trim().refine((value) => {
+  if (value.startsWith("/")) {
+    return true;
+  }
+
+  return z.string().url().safeParse(value).success;
+}, "Invalid image reference");
+
 export const categorySchema = z.object({
   name: z.string().min(2),
   slug: z.string().min(2),
   description: z.string().min(2),
-  image: z.string().url().optional().or(z.literal("")),
+  image: imageReferenceSchema.optional().or(z.literal("")),
 });
 
 export const productSchema = z.object({
@@ -25,7 +33,7 @@ export const productSchema = z.object({
   lowStockThreshold: z.coerce.number().int().min(0),
   isFeatured: z.boolean().default(false),
   isActive: z.boolean().default(true),
-  imageUrls: z.array(z.string().url()).min(1),
+  imageUrls: z.array(imageReferenceSchema).min(1),
 });
 
 export const orderUpdateSchema = z.object({

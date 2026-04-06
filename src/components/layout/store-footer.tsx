@@ -5,8 +5,8 @@ const footerColumns = [
     title: "Catalogue",
     links: [
       { label: "Fournitures scolaires", href: "/categories/fournitures-scolaires" },
-      { label: "Papier & impression", href: "/categories/papier-impression" },
-      { label: "Bons plans", href: "/categories/packs-grossiste" },
+      { label: "Cahiers, blocs & papier", href: "/categories/papier-impression" },
+      { label: "Packs scolaires", href: "/categories/packs-grossiste" },
     ],
   },
   {
@@ -26,11 +26,11 @@ export function StoreFooter() {
         <div className="space-y-4">
           <p className="text-sm uppercase tracking-[0.22em] text-white/60">Papeterie moderne</p>
           <h2 className="max-w-md text-3xl font-semibold text-balance">
-            Une boutique claire, rapide et rassurante pour toute la famille.
+            Une boutique claire, rassurante et bien pensee pour les parents.
           </h2>
           <p className="max-w-md text-sm leading-7 text-white/70">
-            Pensee pour les etudiants, parents, bureaux et amateurs de fournitures
-            creatives partout en Tunisie.
+            Cartables, cahiers, stylos, trousses et packs utiles pour preparer la
+            rentree de vos enfants plus simplement partout en Tunisie.
           </p>
         </div>
 

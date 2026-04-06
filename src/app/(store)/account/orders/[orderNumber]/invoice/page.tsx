@@ -1,7 +1,4 @@
-import { notFound } from "next/navigation";
-
-import { InvoiceDocument } from "@/components/documents/invoice-document";
-import { getOperationalOrder } from "@/lib/operations";
+import { redirect } from "next/navigation";
 
 export default async function AccountInvoicePage({
   params,
@@ -9,11 +6,5 @@ export default async function AccountInvoicePage({
   params: Promise<{ orderNumber: string }>;
 }) {
   const { orderNumber } = await params;
-  const order = getOperationalOrder(orderNumber);
-
-  if (!order) {
-    notFound();
-  }
-
-  return <InvoiceDocument order={order} />;
+  redirect(`/documents/invoices/${orderNumber}`);
 }
