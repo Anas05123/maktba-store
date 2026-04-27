@@ -51,7 +51,12 @@ export function CategoryCard({
         </div>
         <CardContent className="space-y-3 p-5">
           <p className="text-sm leading-6 text-muted-foreground">{category.description}</p>
-          <p className="text-sm font-medium text-primary">Voir les produits</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-primary">Voir les produits</p>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+              Achat facile
+            </span>
+          </div>
         </CardContent>
       </Card>
     </Link>

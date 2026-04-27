@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -23,6 +24,11 @@ export async function PATCH(
   const data = parsed.data;
 
   try {
+    const existingProduct = await prisma.product.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
+
     await prisma.$transaction(async (tx) => {
       await tx.product.update({
         where: { id },
@@ -30,8 +36,14 @@ export async function PATCH(
           name: data.name,
           slug: data.slug,
           sku: data.sku,
+          barcode: data.barcode || null,
           shortDescription: data.shortDescription,
           description: data.description,
+          specifications:
+            data.specifications && Object.keys(data.specifications).length > 0
+              ? (data.specifications as Prisma.InputJsonValue)
+              : Prisma.JsonNull,
+          tags: data.tags,
           categoryId: data.categoryId,
           unit: data.unit,
           packSize: data.packSize,
@@ -39,6 +51,11 @@ export async function PATCH(
           stockOnHand: data.stockOnHand,
           retailPrice: data.retailPrice,
           wholesalePrice: data.wholesalePrice,
+          promotionalPrice: data.promotionalPrice ?? null,
+          compareAtPrice:
+            data.promotionalPrice && data.promotionalPrice < data.retailPrice
+              ? data.retailPrice
+              : null,
           costPrice: data.costPrice,
           lowStockThreshold: data.lowStockThreshold,
           isFeatured: data.isFeatured,
@@ -60,6 +77,10 @@ export async function PATCH(
 
     revalidatePath("/admin/products");
     revalidatePath("/catalog");
+    if (existingProduct?.slug) {
+      revalidatePath(`/products/${existingProduct.slug}`);
+    }
+    revalidatePath(`/products/${data.slug}`);
     revalidatePath("/");
 
     return NextResponse.json({ message: "Product updated" });

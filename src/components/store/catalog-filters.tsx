@@ -46,16 +46,19 @@ export function CatalogFilters({
   products,
   categories,
   initialCategory = "all",
+  initialQuery = "",
 }: {
   products: Product[];
   categories: Array<{ slug: string; name: string }>;
   initialCategory?: string;
+  initialQuery?: string;
 }) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [category, setCategory] = useState(initialCategory);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [priceBand, setPriceBand] = useState<PriceBand>("all");
   const [sortBy, setSortBy] = useState("popular");
+  const [inStockOnly, setInStockOnly] = useState(false);
   const [view, setView] = useState<"list" | "grid">("list");
 
   const topTags = useMemo(() => {
@@ -92,8 +95,9 @@ export function CatalogFilters({
           product.retailPrice >= 10 &&
           product.retailPrice <= 25) ||
         (priceBand === "over25" && product.retailPrice > 25);
+      const matchesStock = !inStockOnly || product.stockOnHand > 0;
 
-      return matchesCategory && matchesQuery && matchesTags && matchesPrice;
+      return matchesCategory && matchesQuery && matchesTags && matchesPrice && matchesStock;
     });
 
     const sorted = [...filtered];
@@ -109,7 +113,7 @@ export function CatalogFilters({
     }
 
     return sorted;
-  }, [category, priceBand, products, query, selectedTags, sortBy]);
+  }, [category, inStockOnly, priceBand, products, query, selectedTags, sortBy]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((current) =>
@@ -120,11 +124,12 @@ export function CatalogFilters({
   };
 
   const resetFilters = () => {
-    setQuery("");
+    setQuery(initialQuery);
     setCategory(initialCategory);
     setSelectedTags([]);
     setPriceBand("all");
     setSortBy("popular");
+    setInStockOnly(false);
   };
 
   return (
@@ -237,6 +242,17 @@ export function CatalogFilters({
                 ))}
               </div>
             </div>
+
+            <div className="mt-6 space-y-3">
+              <p className="text-sm font-medium text-foreground">Disponibilite</p>
+              <label className="flex items-center gap-3 text-sm">
+                <Checkbox
+                  checked={inStockOnly}
+                  onCheckedChange={(checked) => setInStockOnly(Boolean(checked))}
+                />
+                <span>Afficher seulement les produits en stock</span>
+              </label>
+            </div>
           </div>
 
           <div className="rounded-[28px] bg-slate-950 p-5 text-white">
@@ -258,42 +274,74 @@ export function CatalogFilters({
 
       <div className="space-y-5">
         <div className="rounded-[28px] border border-white/70 bg-white/95 p-4 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-2">
-              <Button
-                variant={view === "list" ? "default" : "outline"}
-                size="icon"
-                className="rounded-full"
-                onClick={() => setView("list")}
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className={cn(
+                  "rounded-full border px-4 py-2 text-sm transition",
+                  category === "all"
+                    ? "border-primary/30 bg-primary/10 text-primary"
+                    : "border-border bg-white text-muted-foreground hover:bg-muted/40",
+                )}
+                onClick={() => setCategory("all")}
               >
-                <List className="size-4" />
-              </Button>
-              <Button
-                variant={view === "grid" ? "default" : "outline"}
-                size="icon"
-                className="rounded-full"
-                onClick={() => setView("grid")}
-              >
-                <LayoutGrid className="size-4" />
-              </Button>
-              <p className="ml-2 text-sm text-muted-foreground">
-                {filteredProducts.length} produit{filteredProducts.length > 1 ? "s" : ""}
-              </p>
+                Tout le catalogue
+              </button>
+              {categories.slice(0, 6).map((item) => (
+                <button
+                  key={item.slug}
+                  type="button"
+                  className={cn(
+                    "rounded-full border px-4 py-2 text-sm transition",
+                    category === item.slug
+                      ? "border-primary/30 bg-primary/10 text-primary"
+                      : "border-border bg-white text-muted-foreground hover:bg-muted/40",
+                  )}
+                  onClick={() => setCategory(item.slug)}
+                >
+                  {item.name}
+                </button>
+              ))}
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <p className="text-sm text-muted-foreground">Trier par</p>
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value ?? "popular")}>
-                <SelectTrigger className="h-11 min-w-[220px] rounded-full bg-white px-4">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="popular">Les plus consultes</SelectItem>
-                  <SelectItem value="price-asc">Prix croissant</SelectItem>
-                  <SelectItem value="price-desc">Prix decroissant</SelectItem>
-                  <SelectItem value="stock">Disponibilite</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={view === "list" ? "default" : "outline"}
+                  size="icon"
+                  className="rounded-full"
+                  onClick={() => setView("list")}
+                >
+                  <List className="size-4" />
+                </Button>
+                <Button
+                  variant={view === "grid" ? "default" : "outline"}
+                  size="icon"
+                  className="rounded-full"
+                  onClick={() => setView("grid")}
+                >
+                  <LayoutGrid className="size-4" />
+                </Button>
+                <p className="ml-2 text-sm text-muted-foreground">
+                  {filteredProducts.length} produit{filteredProducts.length > 1 ? "s" : ""}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <p className="text-sm text-muted-foreground">Trier par</p>
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value ?? "popular")}>
+                  <SelectTrigger className="h-11 min-w-[220px] rounded-full bg-white px-4">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="popular">Les plus demandes</SelectItem>
+                    <SelectItem value="price-asc">Prix croissant</SelectItem>
+                    <SelectItem value="price-desc">Prix decroissant</SelectItem>
+                    <SelectItem value="stock">Disponibilite</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </div>

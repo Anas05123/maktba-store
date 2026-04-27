@@ -12,8 +12,8 @@ export default function CheckoutPage() {
   const snapshot = getCartSnapshot(items);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
-      <div>
+    <div className="w-full space-y-8 px-4 py-10 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+      <div className="space-y-4">
         <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">
           Livraison Tunisie
         </p>
@@ -21,6 +21,45 @@ export default function CheckoutPage() {
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
           Renseignez vos coordonnees, choisissez la livraison en Tunisie et confirmez votre panier en quelques instants.
         </p>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            {
+              title: "Prix en TND",
+              description: "Tous les montants sont affiches clairement en dinars tunisiens.",
+              icon: ReceiptText,
+            },
+            {
+              title: "Paiement a la livraison",
+              description: "Vous reglez a la reception pour une commande plus rassurante.",
+              icon: CreditCard,
+            },
+            {
+              title: "Livraison partout en Tunisie",
+              description: "Adresse claire, numero joignable et suivi simple apres validation.",
+              icon: MapPinned,
+            },
+            {
+              title: "Recapitulatif clair",
+              description: "Sous-total, livraison et total sont visibles avant confirmation.",
+              icon: PackageCheck,
+            },
+          ].map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <div
+                key={item.title}
+                className="rounded-[26px] border border-amber-100 bg-[linear-gradient(180deg,#fffdf6_0%,#ffffff_100%)] p-5 shadow-sm"
+              >
+                <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <Icon className="size-5" />
+                </div>
+                <p className="mt-4 text-base font-semibold text-slate-950">{item.title}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -107,6 +146,9 @@ export default function CheckoutPage() {
             </div>
             <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/70 p-4 text-sm text-slate-700">
               Votre recu et votre suivi de commande seront disponibles dans votre espace client apres confirmation.
+            </div>
+            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-sm text-slate-700">
+              Une fois la commande validee, nous preparons vos articles puis nous vous contactons pour la livraison.
             </div>
           </CardContent>
         </Card>

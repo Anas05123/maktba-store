@@ -92,7 +92,7 @@ export function CheckoutForm() {
       <div className="rounded-[24px] border border-primary/15 bg-primary/5 p-4">
         <p className="text-sm font-semibold text-slate-950">Vos informations de livraison</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Remplissez ces champs pour recevoir facilement la commande a domicile.
+          Remplissez ces champs pour recevoir facilement la commande a domicile ou sur votre lieu de travail.
         </p>
       </div>
 
@@ -100,7 +100,7 @@ export function CheckoutForm() {
         <div>
           <h2 className="text-base font-semibold text-slate-950">Contact principal</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Les coordonnees a utiliser pour confirmer votre commande.
+            Les coordonnees a utiliser pour confirmer la commande et joindre facilement le receveur.
           </p>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
@@ -134,7 +134,7 @@ export function CheckoutForm() {
         <div>
           <h2 className="text-base font-semibold text-slate-950">Adresse de livraison</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Plus l&apos;adresse est precise, plus la livraison est simple.
+            Plus l&apos;adresse est precise, plus la livraison est simple et rapide.
           </p>
         </div>
 
@@ -197,6 +197,10 @@ export function CheckoutForm() {
           />
           <span className="text-sm">Je souhaite payer a la livraison.</span>
         </label>
+
+        <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/70 p-4 text-sm text-slate-700">
+          Conseil: indiquez un point de repere simple pour aider le livreur a vous trouver plus vite.
+        </div>
       </div>
 
       <Button type="submit" size="lg" className="w-full rounded-full" disabled={isPending}>

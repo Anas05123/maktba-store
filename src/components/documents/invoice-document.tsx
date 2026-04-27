@@ -1,13 +1,13 @@
 import { DocumentActions } from "@/components/documents/document-actions";
 import { Separator } from "@/components/ui/separator";
+import type { InvoiceDocumentOrder } from "@/lib/account-data";
 import { formatDate, formatTnd } from "@/lib/format";
-import type { OperationalOrder } from "@/lib/operations";
 
 export function InvoiceDocument({
   order,
   showActions = true,
 }: {
-  order: OperationalOrder;
+  order: InvoiceDocumentOrder;
   showActions?: boolean;
 }) {
   return (

@@ -34,7 +34,7 @@ export default async function CategoriesPage() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 sm:px-6">
+    <div className="w-full space-y-8 px-4 py-10 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
       <PageIntro
         badge="Navigation par familles"
         title="Des rayons simples a parcourir pour preparer l'ecole plus vite"

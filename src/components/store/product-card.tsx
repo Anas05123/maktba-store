@@ -32,6 +32,7 @@ export function ProductCard({
           price: number;
         }>
       | undefined;
+    compareAtPrice?: number | undefined;
     categoryName?: string | undefined;
   };
 }) {
@@ -44,7 +45,7 @@ export function ProductCard({
         : "Pratique pour l'ecole et la maison";
 
   return (
-    <Card className="group overflow-hidden rounded-[32px] border-white/70 bg-white/95 shadow-lg shadow-slate-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/55">
+      <Card className="group overflow-hidden rounded-[32px] border-white/70 bg-white/95 shadow-lg shadow-slate-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/55">
       <div className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={getSafeImageSrc(product.images[0])}
@@ -68,6 +69,11 @@ export function ProductCard({
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">A partir de</p>
             <p className="mt-1 text-2xl font-semibold">{product.retailPrice.toFixed(3)} TND</p>
+            {product.compareAtPrice && product.compareAtPrice > product.retailPrice ? (
+              <p className="mt-1 text-xs text-slate-500 line-through">
+                {product.compareAtPrice.toFixed(3)} TND
+              </p>
+            ) : null}
           </div>
           {product.tags[0] ? (
             <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">
@@ -92,6 +98,9 @@ export function ProductCard({
           <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
             {product.retailPrice <= 15 ? "Budget malin" : "Belle finition"}
           </span>
+          <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-800">
+            Paiement a la livraison
+          </span>
         </div>
 
         <PriceBlock
@@ -101,7 +110,10 @@ export function ProductCard({
         />
 
         <div className="flex items-center justify-between gap-3">
-          <Link href={`/products/${product.slug}`} className="text-sm font-medium text-primary">
+          <Link
+            href={`/products/${product.slug}`}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-primary transition hover:border-primary/30 hover:bg-primary/5"
+          >
             Voir le produit
           </Link>
           <AddToCartButton
@@ -119,7 +131,7 @@ export function ProductCard({
               priceTiers: product.priceTiers,
             }}
             quantity={startingQuantity}
-            label="Ajouter"
+            label="Ajouter au panier"
           />
         </div>
       </CardContent>

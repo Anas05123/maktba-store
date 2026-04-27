@@ -134,7 +134,17 @@ NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="replace-with-a-long-random-secret"
 DEMO_ADMIN_EMAIL="admin@maktba.tn"
 DEMO_ADMIN_PASSWORD="ChangeMe123!"
+OWNER_FINANCE_PASSWORD="OwnerFinance123!"
+DEEPSEEK_API_KEY=""
+DEEPSEEK_MODEL="deepseek-chat"
+DEEPSEEK_BASE_URL="https://api.deepseek.com"
 ```
+
+Notes:
+
+- Keep real secrets only in `.env`, never in `.env.example`.
+- The on-site AI assistant automatically uses DeepSeek when `DEEPSEEK_API_KEY` is present.
+- After changing `.env`, restart the dev server.
 
 ## Local setup
 

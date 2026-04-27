@@ -49,7 +49,7 @@ export default function CartPage() {
     .slice(0, 3);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 sm:px-6">
+    <div className="w-full space-y-8 px-4 py-10 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
       <div className="rounded-[34px] border border-white/70 bg-white/95 p-6 shadow-lg shadow-slate-200/30">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-3">

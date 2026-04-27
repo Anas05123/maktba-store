@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { authOptions } from "@/lib/auth";
-import { customerAccountOverviews, operationalOrders } from "@/lib/operations";
+import { getAccountOverview } from "@/lib/account-data";
 import { formatTnd } from "@/lib/format";
 
 const primaryLinkClass =
@@ -22,10 +22,10 @@ export default async function AccountPage({
 }) {
   const session = await getServerSession(authOptions);
   const { denied } = await searchParams;
-  const customer = customerAccountOverviews[0]!;
+  const overview = session?.user ? await getAccountOverview() : null;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
+    <div className="w-full space-y-8 px-4 py-10 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
       <div className="space-y-4">
         <Badge className="rounded-full bg-primary/10 px-4 py-1 text-primary hover:bg-primary/10">
           Compte client
@@ -96,23 +96,38 @@ export default async function AccountPage({
               <CardTitle>Vue compte client</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-3xl border border-dashed border-primary/30 bg-primary/5 p-5">
-                <p className="font-semibold">{customer.displayName}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{customer.email}</p>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-3xl border p-4">
-                  <p className="text-sm text-muted-foreground">Commandes</p>
-                  <p className="mt-2 text-xl font-semibold">{customer.orderCount}</p>
+              {overview ? (
+                <>
+                  <div className="rounded-3xl border border-dashed border-primary/30 bg-primary/5 p-5">
+                    <p className="font-semibold">{overview.displayName}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{overview.email}</p>
+                    {overview.customerCode ? (
+                      <p className="mt-2 text-xs uppercase tracking-[0.18em] text-primary">
+                        Code client {overview.customerCode}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="rounded-3xl border p-4">
+                      <p className="text-sm text-muted-foreground">Commandes</p>
+                      <p className="mt-2 text-xl font-semibold">{overview.orderCount}</p>
+                    </div>
+                    <div className="rounded-3xl border p-4">
+                      <p className="text-sm text-muted-foreground">Total depense</p>
+                      <p className="mt-2 text-xl font-semibold">
+                        {formatTnd(overview.totalSpent)}
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/account/orders" className={primaryLinkClass}>
+                    Voir l&apos;historique commandes
+                  </Link>
+                </>
+              ) : (
+                <div className="rounded-3xl border border-dashed border-border bg-muted/40 p-5 text-sm text-muted-foreground">
+                  Connectez-vous pour consulter vos commandes, votre profil et vos adresses.
                 </div>
-                <div className="rounded-3xl border p-4">
-                  <p className="text-sm text-muted-foreground">Total depense</p>
-                  <p className="mt-2 text-xl font-semibold">{formatTnd(customer.totalSpent)}</p>
-                </div>
-              </div>
-              <Link href="/account/orders" className={primaryLinkClass}>
-                Voir l&apos;historique commandes
-              </Link>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -122,22 +137,34 @@ export default async function AccountPage({
             <CardTitle>Activites recentes</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {operationalOrders.slice(0, 3).map((order) => (
-              <div key={order.orderNumber} className="rounded-3xl border p-4">
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold">{order.orderNumber}</p>
-                  <Badge variant="secondary" className="rounded-full">
-                    {order.orderStatus}
-                  </Badge>
+            {overview?.recentOrders.length ? (
+              <>
+                {overview.recentOrders.map((order) => (
+                  <div key={order.orderNumber} className="rounded-3xl border p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-semibold">{order.orderNumber}</p>
+                      <Badge variant="secondary" className="rounded-full">
+                        {order.statusLabel}
+                      </Badge>
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {order.items.map((item) => item.name).slice(0, 2).join(" • ")}
+                    </p>
+                    <p className="mt-2 text-sm font-medium">{formatTnd(order.total)}</p>
+                  </div>
+                ))}
+                <div className="rounded-3xl bg-muted/60 p-5">
+                  <p className="text-sm text-muted-foreground">Documents disponibles</p>
+                  <p className="mt-2 text-2xl font-semibold">
+                    {overview.orderCount} facture(s)
+                  </p>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">{order.customerName}</p>
-                <p className="mt-2 text-sm font-medium">{formatTnd(order.total)}</p>
+              </>
+            ) : (
+              <div className="rounded-3xl border border-dashed border-border bg-muted/40 p-5 text-sm text-muted-foreground">
+                Vous n&apos;avez aucune commande pour le moment.
               </div>
-            ))}
-            <div className="rounded-3xl bg-muted/60 p-5">
-              <p className="text-sm text-muted-foreground">Documents disponibles</p>
-              <p className="mt-2 text-2xl font-semibold">{operationalOrders.length} factures</p>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

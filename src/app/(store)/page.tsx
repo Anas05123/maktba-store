@@ -4,7 +4,9 @@ import {
   ArrowRight,
   Backpack,
   BriefcaseBusiness,
+  CheckCircle2,
   Gift,
+  MessageSquareQuote,
   Palette,
   ShieldCheck,
   Sparkles,
@@ -13,51 +15,64 @@ import {
 } from "lucide-react";
 
 import { CategoryCard } from "@/components/store/category-card";
+import { HeroPromoSlider } from "@/components/store/hero-promo-slider";
 import { ProductCard } from "@/components/store/product-card";
 import { Badge } from "@/components/ui/badge";
 import { formatTnd } from "@/lib/format";
 import { getSafeImageSrc } from "@/lib/images";
+import {
+  storefrontHeroPromos,
+  storefrontMerchandisingBanners,
+  storefrontTrustHighlights,
+} from "@/lib/storefront-marketing";
 import { getStorefrontCatalogData } from "@/lib/storefront";
 
 const primaryLinkClass =
   "inline-flex h-11 items-center justify-center gap-2 rounded-full bg-slate-950 px-6 text-sm font-medium text-white transition hover:bg-slate-800";
 const outlineLinkClass =
   "inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-6 text-sm font-medium text-slate-800 transition hover:bg-slate-50";
+const sectionClass = "w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12";
 
 const promises = [
   {
     icon: Truck,
     title: "Livraison simple en Tunisie",
-    description: "Une commande claire, une livraison rapide et le paiement a la livraison quand vous en avez besoin.",
+    description:
+      "Une commande claire, une livraison rapide et le paiement a la livraison quand vous en avez besoin.",
   },
   {
     icon: ShieldCheck,
     title: "Prix rassurants",
-    description: "Des tarifs en TND bien lisibles, pour comparer vite et acheter sans hesitation.",
+    description:
+      "Des tarifs en TND bien lisibles, pour comparer vite et acheter sans hesitation.",
   },
   {
     icon: Sparkles,
     title: "Achats utiles pour les enfants",
-    description: "Des rayons pratiques pour la rentree, les devoirs, la trousse et les activites creatives.",
+    description:
+      "Des rayons pratiques pour la rentree, les devoirs, la trousse et les activites creatives.",
   },
 ];
 
 const shoppingCollections = [
   {
     title: "Tout pour la rentree scolaire",
-    description: "Cahiers, trousses, crayons, feuilles et indispensables pour preparer les enfants sans rien oublier.",
+    description:
+      "Cahiers, trousses, crayons, feuilles et indispensables pour preparer les enfants sans rien oublier.",
     href: "/categories/fournitures-scolaires",
     icon: Backpack,
   },
   {
     title: "Papeterie utile pour la maison",
-    description: "Ramettes, blocs, classeurs et fournitures pratiques pour les devoirs, l'impression et l'organisation.",
+    description:
+      "Ramettes, blocs, classeurs et fournitures pratiques pour les devoirs, l'impression et l'organisation.",
     href: "/categories/papier-impression",
     icon: BriefcaseBusiness,
   },
   {
     title: "Dessin & loisirs creatifs",
-    description: "Coloriage, feutres, crayons et activites creatives pour faire plaisir aux enfants.",
+    description:
+      "Coloriage, feutres, crayons et activites creatives pour faire plaisir aux enfants.",
     href: "/categories/arts-creatifs",
     icon: Palette,
   },
@@ -66,14 +81,16 @@ const shoppingCollections = [
 const promotionalBlocks = [
   {
     title: "Packs malins pour les parents",
-    description: "Des selections deja pensees pour la rentree: moins de recherches, plus de temps gagne.",
+    description:
+      "Des selections deja pensees pour la rentree: moins de recherches, plus de temps gagne.",
     href: "/categories/packs-grossiste",
     icon: Gift,
     dark: true,
   },
   {
     title: "Commander sans complication",
-    description: "Telephone, adresse, gouvernorat et paiement a la livraison dans un parcours simple et rassurant.",
+    description:
+      "Telephone, adresse, gouvernorat et paiement a la livraison dans un parcours simple et rassurant.",
     href: "/checkout",
     icon: Star,
     dark: false,
@@ -91,6 +108,45 @@ const categoryCardStyles = [
   "border-lime-200 bg-lime-50/90",
 ];
 
+const orderingSteps = [
+  "Choisissez votre rayon ou recherchez un produit",
+  "Ajoutez les articles utiles au panier en quelques clics",
+  "Confirmez l'adresse et payez a la livraison en Tunisie",
+];
+
+const testimonials = [
+  {
+    name: "Meriem, Tunis",
+    text: "J'ai trouve la liste scolaire de ma fille beaucoup plus vite que d'habitude. Les prix sont clairs et le parcours est simple.",
+  },
+  {
+    name: "Sonia, Sousse",
+    text: "Les packs rentree m'ont aidee a gagner du temps. J'aime le fait que tout soit affiche en dinars tunisiens.",
+  },
+  {
+    name: "Hichem, Sfax",
+    text: "J'ai commande pour deux enfants sans me perdre dans le catalogue. La livraison a ete tres pratique.",
+  },
+];
+
+const faqItems = [
+  {
+    question: "Comment se passe le paiement ?",
+    answer:
+      "Le site met en avant le paiement a la livraison partout en Tunisie pour un achat plus rassurant.",
+  },
+  {
+    question: "Puis-je commander pour plusieurs enfants ?",
+    answer:
+      "Oui, vous pouvez melanger cartables, trousses, cahiers, stylos et packs dans une seule commande.",
+  },
+  {
+    question: "Les prix sont-ils affiches en TND ?",
+    answer:
+      "Oui, tous les montants sont affiches en dinars tunisiens avec un recapitulatif clair dans le panier et au checkout.",
+  },
+];
+
 export default async function HomePage() {
   const { categories, featuredProducts, products } = await getStorefrontCatalogData();
   const fallbackProduct = featuredProducts[0] ?? products[0]!;
@@ -99,10 +155,6 @@ export default async function HomePage() {
   const schoolProduct =
     products.find((product) => product.categorySlug === "fournitures-scolaires") ??
     featuredProducts[1] ??
-    fallbackProduct;
-  const officeProduct =
-    products.find((product) => product.categorySlug === "papier-impression") ??
-    featuredProducts[2] ??
     fallbackProduct;
   const packProduct =
     products.find((product) => product.categorySlug === "packs-grossiste") ??
@@ -113,111 +165,115 @@ export default async function HomePage() {
     const match = slugs.find((slug) => categoryBySlug.has(slug));
     return match ? `/categories/${match}` : "/catalog";
   };
-  const findProductImage = (
-    matcher: (product: (typeof products)[number]) => boolean,
-    fallback?: string,
-  ) => getSafeImageSrc(products.find(matcher)?.images[0] ?? fallback ?? fallbackProduct.images[0]);
+  const categoryHighlightImages = {
+    cartables:
+      "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?auto=format&fit=crop&w=1200&q=80",
+    stylos:
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80",
+    cahiers:
+      "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=1200&q=80",
+    packs:
+      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80",
+    trousses:
+      "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=1200&q=80",
+    crayons:
+      "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?auto=format&fit=crop&w=1200&q=80",
+    accessoires:
+      "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?auto=format&fit=crop&w=1200&q=80",
+    papeterie:
+      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80",
+  } as const;
   const categoryHighlights = [
     {
       title: "Cartables",
       description: "Des sacs pratiques et confortables pour l'ecole.",
       href: getCategoryHref("bagagerie"),
       badge: "Primaire & college",
-      image: getSafeImageSrc(bagProduct.images[0]),
+      image: getSafeImageSrc(categoryHighlightImages.cartables),
     },
     {
       title: "Stylos",
       description: "Les indispensables de la trousse, simples a choisir.",
       href: getCategoryHref("fournitures-scolaires"),
       badge: "Usage quotidien",
-      image: findProductImage(
-        (product) => /stylo|bic|roller|gel/i.test(`${product.name} ${product.tags.join(" ")}`),
-        schoolProduct.images[0],
-      ),
+      image: getSafeImageSrc(categoryHighlightImages.stylos),
     },
     {
       title: "Cahiers & blocs",
       description: "Pour les cours, les devoirs et l'organisation.",
       href: getCategoryHref("papier-impression", "fournitures-scolaires"),
       badge: "Toujours utiles",
-      image: getSafeImageSrc(officeProduct.images[0]),
+      image: getSafeImageSrc(categoryHighlightImages.cahiers),
     },
     {
       title: "Packs scolaires",
       description: "Des selections deja pretes pour gagner du temps.",
       href: getCategoryHref("packs-grossiste"),
       badge: "Rentree facile",
-      image: getSafeImageSrc(packProduct.images[0]),
+      image: getSafeImageSrc(categoryHighlightImages.packs),
     },
     {
       title: "Trousses",
       description: "Des modeles pratiques pour ranger tout l'essentiel.",
       href: getCategoryHref("bagagerie", "fournitures-scolaires"),
       badge: "Pratiques",
-      image: findProductImage(
-        (product) => /trousse|pouch|pencil case/i.test(`${product.name} ${product.tags.join(" ")}`),
-        bagProduct.images[0],
-      ),
+      image: getSafeImageSrc(categoryHighlightImages.trousses),
     },
     {
       title: "Crayons de couleur",
       description: "Pour dessiner, colorier et apprendre en s'amusant.",
       href: getCategoryHref("arts-creatifs"),
       badge: "Creativite",
-      image: findProductImage(
-        (product) => /crayon|couleur|feutre|dessin/i.test(`${product.name} ${product.tags.join(" ")}`),
-        schoolProduct.images[0],
-      ),
+      image: getSafeImageSrc(categoryHighlightImages.crayons),
     },
     {
       title: "Accessoires scolaires",
       description: "Colles, gommes, ciseaux et petits indispensables.",
       href: getCategoryHref("fournitures-scolaires"),
       badge: "Petits essentiels",
-      image: findProductImage(
-        (product) => /colle|gomme|ciseaux|regle|accessoire/i.test(
-          `${product.name} ${product.tags.join(" ")}`,
-        ),
-        schoolProduct.images[0],
-      ),
+      image: getSafeImageSrc(categoryHighlightImages.accessoires),
     },
     {
       title: "Papeterie",
       description: "Papiers, ramettes, enveloppes et fournitures utiles.",
       href: getCategoryHref("papier-impression", "bureau-professionnel"),
       badge: "Maison & bureau",
-      image: findProductImage(
-        (product) => /papier|ramette|enveloppe|bloc|cahier/i.test(
-          `${product.name} ${product.tags.join(" ")}`,
-        ),
-        officeProduct.images[0],
-      ),
+      image: getSafeImageSrc(categoryHighlightImages.papeterie),
     },
   ];
   const packIdeas = [
     {
       title: "Pack primaire",
-      description: "Un point de depart simple pour reunir cahiers, crayons et essentiels des petits.",
+      description:
+        "Un point de depart simple pour reunir cahiers, crayons et essentiels des petits.",
       href: getCategoryHref("packs-grossiste", "fournitures-scolaires"),
       label: "Pour les parents presses",
     },
     {
       title: "Pack college",
-      description: "Des articles utiles pour bien organiser la trousse, le cartable et les cours.",
+      description:
+        "Des articles utiles pour bien organiser la trousse, le cartable et les cours.",
       href: getCategoryHref("fournitures-scolaires", "bagagerie"),
       label: "Plus d'autonomie",
     },
     {
       title: "Pack rentree",
-      description: "Une selection pratique pour preparer la reprise sans oublier les indispensables.",
+      description:
+        "Une selection pratique pour preparer la reprise sans oublier les indispensables.",
       href: getCategoryHref("packs-grossiste", "papier-impression"),
       label: "Le plus demande",
     },
   ];
+  const bestSellers = featuredProducts.slice(0, 6);
+  const newArrivals = products
+    .filter((product) => !bestSellers.some((entry) => entry.slug === product.slug))
+    .slice(0, 6);
 
   return (
     <div className="pb-16">
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12">
+      <HeroPromoSlider slides={storefrontHeroPromos} />
+
+      <section className={`${sectionClass} py-8 lg:py-12`}>
         <div className="overflow-hidden rounded-[40px] border border-amber-200/80 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.95),rgba(255,241,188,0.88)_35%,rgba(255,196,0,0.94)_100%)] shadow-[0_30px_80px_rgba(217,142,0,0.18)]">
           <div className="grid gap-8 px-6 py-8 lg:grid-cols-[0.88fr_1.12fr] lg:px-8 lg:py-10">
             <div className="relative z-10 flex flex-col justify-between gap-8">
@@ -230,7 +286,8 @@ export default async function HomePage() {
                     Les indispensables scolaires pour vos enfants, sans perdre de temps.
                   </h1>
                   <p className="max-w-xl text-base leading-8 text-slate-700 md:text-lg">
-                    Cartables, cahiers, stylos, trousses, packs et papeterie du quotidien dans une boutique claire, moderne et rassurante pour les parents en Tunisie.
+                    Cartables, cahiers, stylos, trousses, packs et papeterie du quotidien dans une
+                    boutique claire, moderne et rassurante pour les parents en Tunisie.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -244,13 +301,8 @@ export default async function HomePage() {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                {[
-                  "Prix clairs en TND",
-                  "Paiement a la livraison",
-                  "Produits utiles pour primaire et college",
-                  `Des essentiels des ${formatTnd(schoolProduct.retailPrice)}`,
-                ].map((item) => (
+                <div className="grid gap-3 sm:grid-cols-2">
+                {[...storefrontTrustHighlights, `Des essentiels des ${formatTnd(schoolProduct.retailPrice)}`].map((item) => (
                   <div
                     key={item}
                     className="rounded-[22px] border border-white/60 bg-white/70 px-4 py-3 text-sm font-medium text-slate-800 backdrop-blur-sm"
@@ -296,9 +348,7 @@ export default async function HomePage() {
                 <p className="mt-4 text-xs uppercase tracking-[0.28em] text-white/70">
                   Selection pratique
                 </p>
-                <p className="mt-3 text-4xl font-semibold leading-none md:text-5xl">
-                  Packs
-                </p>
+                <p className="mt-3 text-4xl font-semibold leading-none md:text-5xl">Packs</p>
                 <p className="mt-2 text-3xl font-semibold md:text-4xl">Rentree</p>
                 <div className="mt-5 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900">
                   {packProduct.name}
@@ -320,7 +370,61 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
+      <section className={`${sectionClass} py-6`}>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">
+              Banners promotionnels
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold text-slate-950">
+              Mises en avant faciles a renouveler
+            </h2>
+          </div>
+          <p className="max-w-xl text-sm leading-6 text-slate-600">
+            Cette zone peut accueillir vos futures promotions, campagnes de rentree et offres
+            saisonnieres sans changer la structure du site.
+          </p>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-3">
+          {storefrontHeroPromos.map((promo) => (
+            <Link
+              key={promo.title}
+              href={promo.href}
+              className={`group rounded-[32px] border p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg ${promo.tone}`}
+            >
+              <p className="text-xs uppercase tracking-[0.18em] text-primary">{promo.eyebrow}</p>
+              <h2 className="mt-3 text-2xl font-semibold text-slate-950">{promo.title}</h2>
+              <p className="mt-3 text-sm leading-7 text-slate-600">{promo.description}</p>
+              <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-950">
+                {promo.cta}
+                <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className={`${sectionClass} py-2`}>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {storefrontMerchandisingBanners.map((banner) => (
+            <Link
+              key={banner.title}
+              href={banner.href}
+              className={`rounded-[32px] border p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg ${banner.tone}`}
+            >
+              <p className="text-xs uppercase tracking-[0.18em] text-primary">{banner.badge}</p>
+              <h2 className="mt-3 text-2xl font-semibold text-slate-950">{banner.title}</h2>
+              <p className="mt-3 text-sm leading-7 text-slate-600">{banner.description}</p>
+              <div className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-slate-950">
+                Decouvrir
+                <ArrowRight className="size-4" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className={`${sectionClass} py-4`}>
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
             <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">
@@ -366,7 +470,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <section className={`${sectionClass} py-8`}>
         <div className="grid gap-6 lg:grid-cols-3">
           {promises.map((item) => {
             const Icon = item.icon;
@@ -387,62 +491,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="rounded-[34px] border border-white/70 bg-white/95 p-7 shadow-lg shadow-slate-200/35">
-            <p className="text-sm uppercase tracking-[0.18em] text-primary">Pensé pour les parents</p>
-            <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_220px]">
-              <div className="space-y-4">
-                <h2 className="text-3xl font-semibold text-balance text-slate-950">
-                  Des articles utiles, jolis et abordables pour accompagner vos enfants toute l&apos;annee.
-                </h2>
-                <p className="text-sm leading-7 text-muted-foreground">
-                  Nous avons simplifie la boutique pour vous montrer l&apos;essentiel au premier regard:
-                  le produit, le prix, le rayon, et le bouton pour acheter rapidement.
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  <Link href="/catalog" className={primaryLinkClass}>
-                    Acheter facilement
-                  </Link>
-                  <Link href="/categories/bagagerie" className={outlineLinkClass}>
-                    Voir les cartables
-                  </Link>
-                </div>
-              </div>
-              <div className="relative h-52 overflow-hidden rounded-[28px] bg-[linear-gradient(135deg,rgba(8,123,167,0.12),rgba(255,255,255,0.95))]">
-                <Image
-                  src={getSafeImageSrc(officeProduct.images[0] ?? schoolProduct.images[0])}
-                  alt={officeProduct.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-[34px] bg-slate-950 p-7 text-white shadow-2xl shadow-slate-900/20">
-            <p className="text-sm uppercase tracking-[0.18em] text-white/55">Pourquoi les parents aiment</p>
-            <div className="mt-5 space-y-4 text-sm leading-7 text-white/80">
-              <p>Des rayons faciles a comprendre: cartables, stylos, cahiers, trousses et packs.</p>
-              <p>Des prix bien visibles en TND, sans jargon technique ni presentation confuse.</p>
-              <p>Une commande simple pour preparer l&apos;ecole sans perdre du temps.</p>
-            </div>
-            <div className="mt-6 grid gap-3">
-              {[
-                "Paiement a la livraison",
-                "Prix en TND",
-                "Produits adaptes aux enfants",
-              ].map((item) => (
-                <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <section className={`${sectionClass} py-8`}>
         <div className="mb-6 flex items-center justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">
@@ -479,13 +528,15 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <section className={`${sectionClass} py-10`}>
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
             <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">
               Packs les plus utiles
             </p>
-            <h2 className="mt-2 text-3xl font-semibold">Des selections pensees pour vous faire gagner du temps</h2>
+            <h2 className="mt-2 text-3xl font-semibold">
+              Des selections pensees pour vous faire gagner du temps
+            </h2>
           </div>
           <Link href="/categories/packs-grossiste" className={outlineLinkClass}>
             Voir les packs
@@ -510,7 +561,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <section className={`${sectionClass} py-10`}>
         <div className="mb-6 flex items-center justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">
@@ -533,26 +584,26 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <section className={`${sectionClass} py-10`}>
         <div className="mb-6 flex items-center justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">
-              Produits utiles a la maison
+              Meilleures ventes
             </p>
-            <h2 className="mt-2 text-3xl font-semibold">Les indispensables scolaires les plus apprecies</h2>
+            <h2 className="mt-2 text-3xl font-semibold">Les produits scolaires les plus apprecies</h2>
           </div>
           <Link href="/catalog" className={outlineLinkClass}>
             Catalogue complet
           </Link>
         </div>
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {featuredProducts.slice(0, 6).map((product) => (
+          {bestSellers.map((product) => (
             <ProductCard key={product.slug} product={product} />
           ))}
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
+      <section className={`${sectionClass} py-4`}>
         <div className="grid gap-6 lg:grid-cols-2">
           {promotionalBlocks.map((block) => {
             const Icon = block.icon;
@@ -598,6 +649,100 @@ export default async function HomePage() {
               </Link>
             );
           })}
+        </div>
+      </section>
+
+      <section className={`${sectionClass} py-10`}>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">
+              Nouveautes utiles
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold">
+              Les derniers articles ajoutes pour la rentree et le quotidien
+            </h2>
+          </div>
+          <Link href="/catalog" className={outlineLinkClass}>
+            Voir les nouveautes
+          </Link>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {newArrivals.map((product) => (
+            <ProductCard key={product.slug} product={product} />
+          ))}
+        </div>
+      </section>
+
+      <section className={`${sectionClass} py-10`}>
+        <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="rounded-[34px] border border-white/70 bg-white/95 p-7 shadow-lg shadow-slate-200/35">
+            <p className="text-sm uppercase tracking-[0.18em] text-primary">
+              Commander facilement
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
+              Une boutique simple a utiliser pour les parents en Tunisie
+            </h2>
+            <div className="mt-6 space-y-3">
+              {orderingSteps.map((step) => (
+                <div
+                  key={step}
+                  className="flex items-start gap-3 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4"
+                >
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <CheckCircle2 className="size-4" />
+                  </div>
+                  <p className="text-sm font-medium leading-6 text-slate-800">{step}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[34px] bg-slate-950 p-7 text-white shadow-2xl shadow-slate-900/20">
+            <div className="flex items-center gap-3">
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-white/10 text-amber-300">
+                <MessageSquareQuote className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm uppercase tracking-[0.18em] text-white/55">
+                  Avis de parents
+                </p>
+                <h2 className="mt-1 text-3xl font-semibold">Une experience rassurante</h2>
+              </div>
+            </div>
+            <div className="mt-6 space-y-4">
+              {testimonials.map((testimonial) => (
+                <div
+                  key={testimonial.name}
+                  className="rounded-[24px] border border-white/10 bg-white/5 p-4"
+                >
+                  <p className="text-sm leading-7 text-white/80">{testimonial.text}</p>
+                  <p className="mt-3 text-sm font-semibold text-white">{testimonial.name}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={`${sectionClass} py-10`}>
+        <div className="rounded-[36px] border border-white/70 bg-white/95 p-7 shadow-lg shadow-slate-200/35">
+          <div className="max-w-3xl">
+            <p className="text-sm uppercase tracking-[0.18em] text-primary">Questions frequentes</p>
+            <h2 className="mt-3 text-3xl font-semibold text-slate-950">
+              Tout ce qu&apos;il faut savoir avant de commander
+            </h2>
+          </div>
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            {faqItems.map((item) => (
+              <div
+                key={item.question}
+                className="rounded-[26px] border border-slate-200 bg-slate-50/80 p-5"
+              >
+                <p className="font-semibold text-slate-950">{item.question}</p>
+                <p className="mt-3 text-sm leading-7 text-slate-600">{item.answer}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </div>

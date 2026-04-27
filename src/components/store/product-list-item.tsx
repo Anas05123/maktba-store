@@ -25,6 +25,7 @@ export function ProductListItem({
     wholesalePrice: number;
     brandName?: string | undefined;
     categoryName?: string | undefined;
+    compareAtPrice?: number | undefined;
     priceTiers?:
       | Array<{
           label: string;
@@ -101,6 +102,11 @@ export function ProductListItem({
             <p className="mt-2 text-3xl font-semibold text-foreground">
               {formatTnd(product.retailPrice)}
             </p>
+            {product.compareAtPrice && product.compareAtPrice > product.retailPrice ? (
+              <p className="mt-1 text-sm text-muted-foreground line-through">
+                {formatTnd(product.compareAtPrice)}
+              </p>
+            ) : null}
             <p className="mt-1 text-sm text-muted-foreground">TND clair, sans surprise</p>
           </div>
 

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
+import { authOptions } from "@/lib/auth";
 import { checkoutPayloadSchema, createCustomerCode, createInvoiceNumber, createOrderNumber, createTrackingNumber } from "@/lib/checkout";
 import { hasDatabaseUrl } from "@/lib/env";
 import { products as demoProducts } from "@/lib/demo-data";
@@ -17,13 +19,18 @@ export async function POST(request: NextRequest) {
   const orderNumber = createOrderNumber();
   const invoiceNumber = createInvoiceNumber(orderNumber);
   const trackingNumber = createTrackingNumber(orderNumber);
+  const session = await getServerSession(authOptions);
+  const checkoutEmail = payload.email.trim().toLowerCase();
 
   if (!hasDatabaseUrl) {
-    return NextResponse.json({
-      live: false,
-      message: "Commande preparee en mode demo.",
-      orderNumber,
-    });
+    return NextResponse.json(
+      {
+        live: false,
+        message:
+          "Le service de commande est temporairement indisponible. Verifiez la connexion a la base de donnees puis reessayez.",
+      },
+      { status: 503 },
+    );
   }
 
   try {
@@ -70,9 +77,32 @@ export async function POST(request: NextRequest) {
     const total = subtotal + shippingFee;
     const costTotal = lineItems.reduce((sum, item) => sum + item.unitCost * item.quantity, 0);
 
-    let customer = await prisma.customer.findFirst({
-      where: { email: payload.email.trim().toLowerCase(), deletedAt: null },
-    });
+    const linkedUser =
+      session?.user?.id && !session.user.id.startsWith("demo-")
+        ? await prisma.user.findUnique({
+            where: { id: session.user.id },
+            include: {
+              customer: true,
+              customerProfile: true,
+            },
+          })
+        : null;
+
+    const canonicalEmail = linkedUser?.email?.trim().toLowerCase() ?? checkoutEmail;
+
+    let customer = linkedUser?.customer ?? null;
+
+    if (!customer) {
+      customer = await prisma.customer.findFirst({
+        where: {
+          email: canonicalEmail,
+          deletedAt: null,
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+      });
+    }
 
     if (!customer) {
       customer = await prisma.customer.create({
@@ -81,10 +111,31 @@ export async function POST(request: NextRequest) {
           type: "RETAIL",
           companyName: payload.companyName,
           contactName: payload.contactName,
-          email: payload.email.trim().toLowerCase(),
+          email: canonicalEmail,
           phone: payload.phone,
           city: payload.city,
           governorate: payload.governorate,
+        },
+      });
+    } else {
+      customer = await prisma.customer.update({
+        where: { id: customer.id },
+        data: {
+          companyName: payload.companyName,
+          contactName: payload.contactName,
+          email: canonicalEmail,
+          phone: payload.phone,
+          city: payload.city,
+          governorate: payload.governorate,
+        },
+      });
+    }
+
+    if (linkedUser && linkedUser.customerId !== customer.id) {
+      await prisma.user.update({
+        where: { id: linkedUser.id },
+        data: {
+          customerId: customer.id,
         },
       });
     }
@@ -107,6 +158,7 @@ export async function POST(request: NextRequest) {
       data: {
         orderNumber,
         customerId: customer.id,
+        createdById: linkedUser?.id ?? null,
         channel: "DIRECT_SALES",
         status: "PENDING",
         fulfillmentStatus: "CONFIRMED",
@@ -125,13 +177,13 @@ export async function POST(request: NextRequest) {
         receiverName: payload.contactName,
         receiverCompany: payload.companyName,
         receiverPhone: payload.phone,
-        receiverEmail: payload.email,
+        receiverEmail: canonicalEmail,
         receiverAddressLine: payload.addressLine,
         receiverCity: payload.city,
         receiverGovernorate: payload.governorate,
         billingName: payload.contactName,
         billingPhone: payload.phone,
-        billingEmail: payload.email,
+        billingEmail: canonicalEmail,
         billingAddressLine: payload.addressLine,
         billingCity: payload.city,
         billingGovernorate: payload.governorate,
@@ -208,6 +260,17 @@ export async function POST(request: NextRequest) {
         },
         packagingHistory: {
           create: [{ status: "NOT_STARTED", note: "Attente de preparation logistique." }],
+        },
+        notifications: {
+          create: [
+            {
+              customerId: customer.id,
+              channel: "IN_APP",
+              status: "PENDING",
+              title: `Nouvelle commande ${orderNumber}`,
+              body: `Commande recue pour ${payload.contactName} • ${total.toFixed(3)} TND`,
+            },
+          ],
         },
       },
     });

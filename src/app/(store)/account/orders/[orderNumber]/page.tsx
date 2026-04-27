@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { AccountNav } from "@/components/account/account-nav";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getAccessibleOrderByNumber } from "@/lib/account-data";
 import { formatDate, formatTnd } from "@/lib/format";
-import { formatOperationalTimeline, getOperationalOrder } from "@/lib/operations";
 
 export default async function AccountOrderDetailPage({
   params,
@@ -13,16 +13,14 @@ export default async function AccountOrderDetailPage({
   params: Promise<{ orderNumber: string }>;
 }) {
   const { orderNumber } = await params;
-  const order = getOperationalOrder(orderNumber);
+  const order = await getAccessibleOrderByNumber(orderNumber);
 
   if (!order) {
     notFound();
   }
 
-  const timeline = formatOperationalTimeline(order.timeline);
-
   return (
-    <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
+    <div className="w-full space-y-8 px-4 py-10 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
       <div className="space-y-4">
         <div>
           <p className="text-sm uppercase tracking-[0.18em] text-muted-foreground">
@@ -30,7 +28,7 @@ export default async function AccountOrderDetailPage({
           </p>
           <h1 className="mt-2 text-4xl font-semibold">{order.orderNumber}</h1>
           <p className="mt-3 text-base text-muted-foreground">
-            Commande passee le {formatDate(order.placedAt)} pour {order.customerName}.
+            Commande passee le {formatDate(order.placedAt)}.
           </p>
         </div>
         <AccountNav />
@@ -44,7 +42,7 @@ export default async function AccountOrderDetailPage({
             </CardHeader>
             <CardContent className="space-y-4">
               {order.items.map((item) => (
-                <div key={item.sku} className="flex items-center justify-between rounded-3xl border p-4">
+                <div key={item.id} className="flex items-center justify-between rounded-3xl border p-4">
                   <div>
                     <p className="font-semibold">{item.name}</p>
                     <p className="text-sm text-muted-foreground">{item.sku}</p>
@@ -63,11 +61,13 @@ export default async function AccountOrderDetailPage({
               <CardTitle>Chronologie</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {timeline.map((entry) => (
-                <div key={`${entry.label}-${entry.at}`} className="rounded-3xl border p-4">
+              {order.timeline.map((entry) => (
+                <div key={entry.id} className="rounded-3xl border p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-semibold">{entry.label}</p>
-                    <span className="text-sm text-muted-foreground">{entry.displayDate}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {formatDate(entry.at)}
+                    </span>
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">{entry.detail}</p>
                 </div>
@@ -83,11 +83,11 @@ export default async function AccountOrderDetailPage({
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                { label: "Commande", value: order.orderStatus },
-                { label: "Preparation", value: order.fulfillmentStatus },
-                { label: "Packaging", value: order.packagingStatus },
-                { label: "Livraison", value: order.deliveryStatus },
-                { label: "Paiement", value: order.paymentStatus },
+                { label: "Commande", value: order.statusLabel },
+                { label: "Preparation", value: order.fulfillmentStatusLabel },
+                { label: "Packaging", value: order.packagingStatusLabel },
+                { label: "Livraison", value: order.deliveryStatusLabel },
+                { label: "Paiement", value: order.paymentStatusLabel },
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between rounded-2xl bg-muted/50 px-4 py-3">
                   <span className="text-sm text-muted-foreground">{item.label}</span>
@@ -104,10 +104,28 @@ export default async function AccountOrderDetailPage({
               <CardTitle>Livraison</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <p><span className="text-muted-foreground">Transporteur:</span> {order.delivery.courier}</p>
-              <p><span className="text-muted-foreground">Tracking:</span> {order.delivery.trackingNumber}</p>
-              <p><span className="text-muted-foreground">Date estimee:</span> {formatDate(order.delivery.estimatedDeliveryDate)}</p>
-              <p><span className="text-muted-foreground">Adresse:</span> {order.shippingAddress}, {order.shippingCity}</p>
+              <p>
+                <span className="text-muted-foreground">Transporteur:</span>{" "}
+                {order.delivery?.courierCompany || order.delivery?.courierName || "A affecter"}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Tracking:</span>{" "}
+                {order.delivery?.trackingNumber || "En attente"}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Date estimee:</span>{" "}
+                {order.delivery?.estimatedDeliveryDate
+                  ? formatDate(order.delivery.estimatedDeliveryDate)
+                  : "A confirmer"}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Adresse:</span>{" "}
+                {order.receiverAddressLine}, {order.receiverCity}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Paiement:</span>{" "}
+                {order.paymentMethodLabel}
+              </p>
               <Link
                 href={`/documents/invoices/${order.orderNumber}`}
                 target="_blank"
@@ -130,7 +148,11 @@ export default async function AccountOrderDetailPage({
               </div>
               <div className="flex items-center justify-between">
                 <span>Livraison</span>
-                <span>{formatTnd(order.shippingCost)}</span>
+                <span>{formatTnd(order.shippingFee)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Taxes</span>
+                <span>{formatTnd(order.taxTotal)}</span>
               </div>
               <div className="flex items-center justify-between text-base font-semibold">
                 <span>Total</span>

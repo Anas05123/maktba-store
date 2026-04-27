@@ -8,6 +8,9 @@ const envSchema = z
     DEMO_ADMIN_EMAIL: z.string().email().optional(),
     DEMO_ADMIN_PASSWORD: z.string().min(8).optional(),
     OWNER_FINANCE_PASSWORD: z.string().min(8).optional(),
+    DEEPSEEK_API_KEY: z.string().min(20).optional(),
+    DEEPSEEK_MODEL: z.string().min(1).optional(),
+    DEEPSEEK_BASE_URL: z.string().url().optional(),
   })
   .partial();
 
@@ -22,6 +25,14 @@ export const env = {
   OWNER_FINANCE_PASSWORD:
     process.env.OWNER_FINANCE_PASSWORD?.trim() ||
     (parsed.success ? parsed.data.OWNER_FINANCE_PASSWORD : undefined),
+  DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY?.trim(),
+  DEEPSEEK_MODEL:
+    process.env.DEEPSEEK_MODEL?.trim() ||
+    (parsed.success ? parsed.data.DEEPSEEK_MODEL : undefined),
+  DEEPSEEK_BASE_URL:
+    process.env.DEEPSEEK_BASE_URL?.trim() ||
+    (parsed.success ? parsed.data.DEEPSEEK_BASE_URL : undefined),
 };
 
 export const hasDatabaseUrl = Boolean(env.DATABASE_URL);
+export const hasDeepSeekAssistant = Boolean(env.DEEPSEEK_API_KEY);

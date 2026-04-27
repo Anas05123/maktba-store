@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Search, ShieldCheck } from "lucide-react";
 
+import { AdminOrderNotificationsBadge } from "@/components/admin/order-notifications-badge";
 import { AdminSignOutButton } from "@/components/shared/auth-controls";
 import { dashboardNavigation } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
@@ -71,7 +72,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
                   return (
                     <Link
-                      key={item.href}
+                      key={`${item.label}-${item.href}`}
                       href={item.href}
                       className={cn(
                         "flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm transition-colors",
@@ -84,11 +85,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                         <Icon className="size-4" />
                         {item.label}
                       </span>
-                      {item.ownerOnly ? (
-                        <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] uppercase tracking-[0.16em]">
-                          Owner
-                        </span>
-                      ) : null}
+                      <span className="flex items-center gap-2">
+                        {item.href === "/admin/orders" ? <AdminOrderNotificationsBadge /> : null}
+                        {item.ownerOnly ? (
+                          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] uppercase tracking-[0.16em]">
+                            Owner
+                          </span>
+                        ) : null}
+                      </span>
                     </Link>
                   );
                 })}

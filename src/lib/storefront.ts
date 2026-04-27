@@ -8,6 +8,7 @@ import {
   products as demoProducts,
 } from "@/lib/demo-data";
 import { hasDatabaseUrl } from "@/lib/env";
+import { slugifyValue } from "@/lib/slugs";
 import { prisma } from "@/lib/prisma";
 
 const fallbackAccents = [
@@ -29,55 +30,76 @@ const categoryPresentationOverrides: Record<
   "fournitures-scolaires": {
     description:
       "Stylos, cahiers, trousses et indispensables pratiques pour preparer la rentree sans stress.",
+    image:
+      "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80",
   },
   "bureau-professionnel": {
     name: "Papeterie de bureau",
     description:
       "Classeurs, calculatrices, accessoires et fournitures utiles pour la maison et le bureau.",
+    image:
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80",
   },
   "papier-impression": {
     name: "Cahiers, blocs & papier",
     description:
       "Ramettes, blocs, feuilles et papier du quotidien pour les devoirs, l'impression et l'organisation.",
+    image:
+      "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=1200&q=80",
   },
   "arts-creatifs": {
     name: "Dessin & creativite",
     description:
       "Crayons, feutres, colles et activites creatives pensees pour les enfants et les petits artistes.",
+    image:
+      "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?auto=format&fit=crop&w=1200&q=80",
   },
   bagagerie: {
     name: "Cartables & trousses",
     description:
       "Cartables, sacs et trousses pratiques pour accompagner les enfants pendant toute l'annee scolaire.",
+    image:
+      "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?auto=format&fit=crop&w=1200&q=80",
   },
   "packs-grossiste": {
     name: "Packs scolaires",
     description:
       "Des packs utiles et bien composes pour aider les parents a gagner du temps a la rentree.",
+    image:
+      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80",
   },
 };
 
 const productPresentationOverrides: Record<
   string,
-  Partial<Pick<StorefrontProduct, "shortDescription" | "description">>
+  Partial<Pick<StorefrontProduct, "shortDescription" | "description" | "images">>
 > = {
   "cahier-spirale-a4-200-oxford": {
     shortDescription:
       "Un cahier solide et pratique pour les cours, les devoirs et l'organisation de toute l'annee.",
     description:
       "Cahier spirale A4 200 pages avec couverture resistante et pages agreables a ecrire, ideal pour les eleves, lyceens et etudiants.",
+    images: [
+      "https://images.unsplash.com/photo-1531346680769-a1d79b57de5c?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   "pack-12-stylos-bic-cristal": {
     shortDescription:
       "Le pack de stylos simple, fiable et abordable a glisser dans chaque trousse.",
     description:
       "Boite de 12 stylos BIC Cristal bleu, parfaite pour la maison, l'ecole et les achats de rentree a petit budget.",
+    images: [
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   "ramette-papier-a4-80g": {
     shortDescription:
       "Une ramette pratique pour l'impression, les devoirs et les besoins du bureau a la maison.",
     description:
       "Papier A4 80g 500 feuilles, polyvalent et propre a l'impression, utile pour l'ecole, les documents et les activites du quotidien.",
+    images: [
+      "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   "classeur-levier-a4-deli": {
     shortDescription:
@@ -90,18 +112,27 @@ const productPresentationOverrides: Record<
       "Des feutres colores et faciles a utiliser pour le dessin, l'ecole et les activites creatives.",
     description:
       "Pochette de 12 feutres lavables a pointe large, adaptes aux enfants pour les coloriages, affiches et loisirs creatifs.",
+    images: [
+      "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   "calculatrice-casio-fx-991cw": {
     shortDescription:
       "Une calculatrice fiable pour le college, le lycee et les revisions importantes.",
     description:
       "Calculatrice scientifique Casio pratique pour les cours de mathematiques et de sciences, avec un format clair et une bonne prise en main.",
+    images: [
+      "https://images.unsplash.com/photo-1560785496-3c9d27877182?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   "cartable-bomi-premium-2025": {
     shortDescription:
       "Un cartable confortable et resistant pour accompagner les enfants toute la journee.",
     description:
       "Cartable ergonomique avec poches utiles, dos renforce et finitions soignees pour une rentree sereine et bien organisee.",
+    images: [
+      "https://images.unsplash.com/photo-1581605405669-fcdf81165afa?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   "boite-24-crayons-hb-bic": {
     shortDescription:
@@ -114,18 +145,27 @@ const productPresentationOverrides: Record<
       "Un pack d'enveloppes utile pour les papiers, inscriptions et courriers du quotidien.",
     description:
       "Pack de 50 enveloppes A4 auto-adhesives pour les dossiers, documents scolaires et besoins administratifs.",
+    images: [
+      "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   "kit-creatif-colle-ciseaux-colors": {
     shortDescription:
       "Un kit malin pour les activites manuelles, les devoirs creatifs et les petits projets d'enfants.",
     description:
       "Kit complet avec colle, ciseaux securises et crayons de couleur pour les activites scolaires et creativites a la maison.",
+    images: [
+      "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
   "pack-grossiste-rentree-primaire-xl": {
     shortDescription:
       "Un pack rentree pratique pour aider les parents a reunir l'essentiel en une seule commande.",
     description:
       "Pack scolaire compose de cahiers, stylos, crayons, trousse et cartable pour preparer la rentree plus vite et plus simplement.",
+    images: [
+      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80",
+    ],
   },
 };
 
@@ -154,18 +194,23 @@ export type StorefrontCategory = {
 export type StorefrontProduct = {
   slug: string;
   sku: string;
+  barcode?: string | undefined;
   name: string;
   shortDescription: string;
   description: string;
+  specifications?: Record<string, string> | undefined;
   categorySlug: string;
   categoryName: string;
   brandName?: string | undefined;
   tags: string[];
   images: string[];
   stockOnHand: number;
+  unit: string;
+  packSize: number;
   minimumOrderQuantity: number;
   wholesalePrice: number;
   retailPrice: number;
+  compareAtPrice?: number | undefined;
   priceTiers: StorefrontPriceTier[];
   variants?: StorefrontVariant[] | undefined;
   isFeatured: boolean;
@@ -196,6 +241,7 @@ function applyProductPresentation(product: StorefrontProduct) {
     ...product,
     shortDescription: override?.shortDescription ?? product.shortDescription,
     description: override?.description ?? product.description,
+    images: override?.images ?? product.images,
   };
 }
 
@@ -314,6 +360,7 @@ async function loadStorefrontCatalog(): Promise<StorefrontCatalog> {
       return applyProductPresentation({
         slug: product.slug,
         sku: product.sku,
+        ...(product.barcode ? { barcode: product.barcode } : {}),
         name: product.name,
         shortDescription:
           product.shortDescription ??
@@ -324,15 +371,26 @@ async function loadStorefrontCatalog(): Promise<StorefrontCatalog> {
           demoProduct?.description ??
           product.shortDescription ??
           "Produit disponible pour l'ecole, le bureau et les achats du quotidien.",
+        specifications:
+          typeof product.specifications === "object" && product.specifications
+            ? (product.specifications as Record<string, string>)
+            : undefined,
         categorySlug: category?.slug ?? demoProduct?.categorySlug ?? "catalogue",
         categoryName: category?.name ?? demoProduct?.categoryName ?? "Catalogue",
         brandName: product.brand?.name ?? demoProduct?.brandName,
         tags: product.tags.length > 0 ? product.tags : demoProduct?.tags ?? [],
         images: images.length > 0 ? images : demoProduct?.images ?? [fallbackImage],
         stockOnHand: product.stockOnHand,
+        unit: product.unit,
+        packSize: product.packSize,
         minimumOrderQuantity: product.minimumOrderQuantity,
         wholesalePrice: Number(product.wholesalePrice),
         retailPrice: Number(product.promotionalPrice ?? product.retailPrice),
+        ...(product.promotionalPrice
+          ? { compareAtPrice: Number(product.retailPrice) }
+          : product.compareAtPrice
+            ? { compareAtPrice: Number(product.compareAtPrice) }
+            : {}),
         priceTiers:
           mappedPriceTiers.length > 0
             ? mappedPriceTiers
@@ -366,19 +424,30 @@ export async function getStorefrontCatalogData() {
 export async function getStorefrontCategoryData(slug: string) {
   await connection();
   const catalog = await loadStorefrontCatalog();
-  const category = catalog.categories.find((entry) => entry.slug === slug) ?? null;
+  const normalizedSlug = slugifyValue(slug);
+  const category =
+    catalog.categories.find(
+      (entry) => entry.slug === slug || slugifyValue(entry.slug) === normalizedSlug,
+    ) ?? null;
+  const effectiveCategorySlug = category?.slug ?? slug;
 
   return {
     ...catalog,
     category,
-    productsByCategory: catalog.products.filter((product) => product.categorySlug === slug),
+    productsByCategory: catalog.products.filter(
+      (product) => product.categorySlug === effectiveCategorySlug,
+    ),
   };
 }
 
 export async function getStorefrontProductData(slug: string) {
   await connection();
   const catalog = await loadStorefrontCatalog();
-  const product = catalog.products.find((entry) => entry.slug === slug) ?? null;
+  const normalizedSlug = slugifyValue(slug);
+  const product =
+    catalog.products.find(
+      (entry) => entry.slug === slug || slugifyValue(entry.slug) === normalizedSlug,
+    ) ?? null;
 
   return {
     ...catalog,

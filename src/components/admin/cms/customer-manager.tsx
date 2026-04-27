@@ -89,7 +89,7 @@ export function CustomerManager() {
         <CardContent className="space-y-3">
           {!liveMode ? (
             <div className="rounded-2xl border border-amber-400/30 bg-amber-300/10 p-4 text-sm text-amber-50">
-              Mode demo: la base est necessaire pour modifier les clients.
+              Connexion base indisponible: les modifications client sont temporairement desactivees.
             </div>
           ) : null}
           {message ? <div className="rounded-2xl border border-white/10 bg-white/10 p-3 text-sm">{message}</div> : null}

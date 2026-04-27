@@ -7,7 +7,6 @@ import { prisma } from "@/lib/prisma";
 import {
   categories as demoCategories,
   customers as demoCustomers,
-  orders as demoOrders,
   products as demoProducts,
 } from "@/lib/demo-data";
 
@@ -25,7 +24,7 @@ export function dbUnavailableResponse() {
   return NextResponse.json(
     {
       message:
-        "Database is not configured. Connect PostgreSQL to enable live CMS actions.",
+        "Database connection is unavailable. Live CMS actions are temporarily disabled.",
     },
     { status: 503 },
   );
@@ -97,6 +96,7 @@ export async function getProductRecords() {
         name: product.name,
         slug: product.slug,
         sku: product.sku,
+        barcode: "",
         shortDescription: product.shortDescription,
         description: product.description,
         categoryId: product.categorySlug,
@@ -108,8 +108,11 @@ export async function getProductRecords() {
         stockOnHand: product.stockOnHand,
         retailPrice: product.retailPrice,
         wholesalePrice: product.wholesalePrice,
+        promotionalPrice: null,
         costPrice: product.costPrice,
         lowStockThreshold: product.lowStockThreshold,
+        tags: product.tags,
+        specifications: {},
         isFeatured: product.isFeatured,
         isActive: true,
         imageUrls: product.images,
@@ -136,6 +139,7 @@ export async function getProductRecords() {
         name: product.name,
         slug: product.slug,
         sku: product.sku,
+        barcode: product.barcode ?? "",
         shortDescription: product.shortDescription ?? "",
         description: product.description ?? "",
         categoryId: product.categoryId,
@@ -146,8 +150,14 @@ export async function getProductRecords() {
         stockOnHand: product.stockOnHand,
         retailPrice: Number(product.retailPrice),
         wholesalePrice: Number(product.wholesalePrice),
+        promotionalPrice: product.promotionalPrice ? Number(product.promotionalPrice) : null,
         costPrice: Number(product.costPrice),
         lowStockThreshold: product.lowStockThreshold,
+        tags: product.tags,
+        specifications:
+          typeof product.specifications === "object" && product.specifications
+            ? (product.specifications as Record<string, string>)
+            : {},
         isFeatured: product.isFeatured,
         isActive: product.isActive,
         imageUrls: product.images.map((image) => image.url),
@@ -161,6 +171,7 @@ export async function getProductRecords() {
         name: product.name,
         slug: product.slug,
         sku: product.sku,
+        barcode: "",
         shortDescription: product.shortDescription,
         description: product.description,
         categoryId: product.categorySlug,
@@ -172,8 +183,11 @@ export async function getProductRecords() {
         stockOnHand: product.stockOnHand,
         retailPrice: product.retailPrice,
         wholesalePrice: product.wholesalePrice,
+        promotionalPrice: null,
         costPrice: product.costPrice,
         lowStockThreshold: product.lowStockThreshold,
+        tags: product.tags,
+        specifications: {},
         isFeatured: product.isFeatured,
         isActive: true,
         imageUrls: product.images,
@@ -186,23 +200,7 @@ export async function getOrderRecords() {
   if (!isLiveMode()) {
     return {
       live: false,
-      data: demoOrders.map((order) => ({
-        id: order.orderNumber,
-        orderNumber: order.orderNumber,
-        status: order.status,
-        customerName:
-          demoCustomers.find((customer) => customer.code === order.customerCode)?.companyName ??
-          "Guest",
-        total:
-          order.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0) +
-          order.shippingFee,
-        receiverName: order.receiverName,
-        receiverPhone: order.receiverPhone,
-        receiverCity: order.receiverCity,
-        receiverGovernorate: order.receiverGovernorate,
-        receiverAddressLine: order.receiverAddressLine,
-        customerNotes: order.notes ?? "",
-      })),
+      data: [],
     };
   }
 
@@ -211,6 +209,19 @@ export async function getOrderRecords() {
       where: { deletedAt: null },
       include: {
         customer: true,
+        items: {
+          orderBy: { productName: "asc" },
+          take: 3,
+        },
+        notifications: {
+          where: {
+            orderId: { not: null },
+            readAt: null,
+            status: { not: "READ" },
+            channel: "IN_APP",
+          },
+          select: { id: true },
+        },
       },
       orderBy: { placedAt: "desc" },
     });
@@ -229,28 +240,18 @@ export async function getOrderRecords() {
         receiverGovernorate: order.receiverGovernorate,
         receiverAddressLine: order.receiverAddressLine,
         customerNotes: order.customerNotes ?? "",
+        placedAt: order.placedAt.toISOString(),
+        paymentStatus: order.paymentStatus,
+        deliveryStatus: order.deliveryStatus,
+        itemsCount: order.itemsCount,
+        itemsPreview: order.items.map((item) => item.productName).slice(0, 3),
+        isNew: order.notifications.length > 0,
       })),
     };
   } catch {
     return {
       live: false,
-      data: demoOrders.map((order) => ({
-        id: order.orderNumber,
-        orderNumber: order.orderNumber,
-        status: order.status,
-        customerName:
-          demoCustomers.find((customer) => customer.code === order.customerCode)?.companyName ??
-          "Guest",
-        total:
-          order.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0) +
-          order.shippingFee,
-        receiverName: order.receiverName,
-        receiverPhone: order.receiverPhone,
-        receiverCity: order.receiverCity,
-        receiverGovernorate: order.receiverGovernorate,
-        receiverAddressLine: order.receiverAddressLine,
-        customerNotes: order.notes ?? "",
-      })),
+      data: [],
     };
   }
 }

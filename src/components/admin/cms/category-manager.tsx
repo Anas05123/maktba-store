@@ -191,7 +191,7 @@ export function CategoryManager() {
 
             {!liveMode ? (
               <div className="rounded-2xl border border-amber-400/30 bg-amber-300/10 p-4 text-sm text-amber-50">
-                Mode demo: connectez la base pour activer le CRUD.
+                Connexion base indisponible: la creation et la modification des categories sont temporairement desactivees.
               </div>
             ) : null}
             {message ? (

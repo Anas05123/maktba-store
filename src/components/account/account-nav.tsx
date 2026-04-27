@@ -19,7 +19,7 @@ export function AccountNav() {
     <div className="flex flex-wrap gap-2">
       {accountNavigation.map((item) => (
         <Link
-          key={item.href}
+          key={`${item.label}-${item.href}`}
           href={item.href}
           className={cn(
             "rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-muted-foreground transition hover:border-primary/30 hover:text-foreground",

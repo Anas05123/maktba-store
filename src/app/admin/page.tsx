@@ -75,11 +75,12 @@ export default function AdminDashboardPage() {
             {[
               { label: "Produits", href: "/admin/products" },
               { label: "Categories", href: "/admin/categories" },
+              { label: "Bannieres & promos", href: "/admin/marketing" },
               { label: "Stock", href: "/admin/inventory" },
               { label: "Finance proprietaire", href: "/admin/finance" },
             ].map((item) => (
               <Link
-                key={item.href}
+                key={`${item.label}-${item.href}`}
                 href={item.href}
                 className="flex items-center justify-between rounded-[22px] border border-white/10 bg-white/5 px-4 py-3 text-sm transition hover:bg-white/10"
               >
